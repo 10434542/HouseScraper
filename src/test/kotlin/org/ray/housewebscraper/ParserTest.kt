@@ -35,12 +35,49 @@ class ParserTest {
 
     @Test
     fun testParsing(): Unit = runBlocking {
+        val prices = arrayOf(
+            50000,
+            75000,
+            100000,
+            125000,
+            150000,
+            175000,
+            200000,
+            225000,
+            250000,
+            275000,
+            300000,
+            325000,
+            350000,
+            375000,
+            400000,
+            450000,
+            500000,
+            550000,
+            600000,
+            650000,
+            700000,
+            750000,
+            800000,
+            900000,
+            1000000,
+            1250000,
+            1500000,
+            2000000,
+            2500000,
+            3000000,
+            3500000,
+            4000000,
+            4500000,
+            5000000
+        )
+
         val result = webclient.get()
             .uri("https://funda.nl/koop/$CITY/0-350000")
             .accept(MediaType.APPLICATION_XML)
             .retrieve()
             .awaitBody<String>()
-//        println(result)
+        // parse first result
         val document: Document = Jsoup.parse(result)
         val regex = """^/koop/$CITY/[0-9]+-[0-9]+/p[0-9]+/$"""
         val links = document.select("[href~=$regex]").not("[rel]")
@@ -48,35 +85,43 @@ class ParserTest {
             val tempList = it.attr("href").split("/")
             tempList[tempList.size - 2]
         }.last()
+        // get the relevant links
         println(highestPage)
         val allLinks = generateSequence(1) { it + 1 }.take(
             highestPage.split("p").last().toInt()
         ).map { "https://funda.nl/koop/$CITY/0-350000/p$it" }
-        val results = //                val whatever = webclient.get()
-//                    .uri("https://funda.nl/koop/haarlem/0-350000")
-//                    .accept(MediaType.APPLICATION_XML)
-//                    .retrieve()
-//                    .awaitBody<String>()
-
-            allLinks.map {
-                async(Dispatchers.IO) {
-                    // this is it!
-                    println("starting $it on thread ${Thread.currentThread()}" )
-                    delay((0..10).random().toLong() * 1000)
-                    it
-//                val whatever = webclient.get()
-//                    .uri("https://funda.nl/koop/haarlem/0-350000")
-//                    .accept(MediaType.APPLICATION_XML)
-//                    .retrieve()
-//                    .awaitBody<String>()
-
-                }
-            }.toList()
-        val houses = results.awaitAll().map{
+//        val results = //                val whatever = webclient.get()
+////                    .uri("https://funda.nl/koop/haarlem/0-350000")
+////                    .accept(MediaType.APPLICATION_XML)
+////                    .retrieve()
+////                    .awaitBody<String>()
+//
+//            allLinks.take(1).map {
+//                async(Dispatchers.IO) {
+//                    // this is it!
+//                    println("starting $it on thread ${Thread.currentThread()}")
+//                    delay((0..10).random().toLong() * 1000)
+//                    it
+//                }
+//            }.toList()
+        // search result media and search result promo add up to the total amount of ads per page, get them independently?
+        val houses = allLinks.take(1).toList().map {
             async {
-
+                println("getting link $it")
+                val specificResult = webclient.get()
+                    .uri(it)
+                    .accept(MediaType.APPLICATION_XML)
+                    .retrieve()
+                    .awaitBody<String>()
+                val houseDocument: Document = Jsoup.parse(specificResult)
+                return@async houseDocument.select(".search-result-media a[data-object-url-tracking*=\"resultlist\"]").toList()
             }
+        }.awaitAll().flatten()
+        print(houses.size)
+        houses.forEach {
+            print("hello funda $it")
         }
+        TODO("use search-result-content-inner instead of the search result media")
     }
 
     @Test
@@ -91,6 +136,12 @@ class ParserTest {
 //        clientCodecConfigurer.customCodecs().register(Jaxb2XmlEncoder())
 //        clientCodecConfigurer.customCodecs().register(Jaxb2XmlDecoder(
 //            MediaType(TEXT_HTML, StandardCharsets.UTF_8)))
+    }
+
+    suspend inline fun String.parseHousePage(
+        parser: (String) -> List<String>
+    ): List<String> {
+        return parser(this)
     }
 
     private fun getJaxbEncoder(): Jaxb2XmlDecoder {
