@@ -98,7 +98,7 @@ class ParserTest {
             highestPage.split("p").last().toInt()
         ).map { "https://funda.nl/koop/$CITY/0-350000/p$it" }
         // search result media and search result promo add up to the total amount of ads per page, get them independently?
-        val houses = allLinks.take(2).toList().map {
+        val houses = allLinks.take(4).toList().map {
             async {
                 val streetList: MutableList<String> = mutableListOf<String>()
                 val cityList: MutableList<String> = mutableListOf()
