@@ -8,10 +8,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController("/api")
 class RootController(val clientList: Map<String, HouseWebClient>) {
 
-
     @GetMapping("/trigger")
     suspend fun findBuyHouse(): List<BuyHouse> {
-        clientList["fundaClientHouse"]?.getBuyHouseByCity("Haarlem")
+        clientList["fundaClientHouse"]?.getHousesByCityWithinRange("Haarlem", 0, 100000)
         return emptyList()
     }
 
