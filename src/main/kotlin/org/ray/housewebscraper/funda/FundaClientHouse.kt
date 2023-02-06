@@ -6,22 +6,17 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.NodeTraversor
-import org.ray.housewebscraper.model.BuyHouse
 import org.ray.housewebscraper.model.BuyHouseDTO
 import org.ray.housewebscraper.model.HouseWebClient
 import org.springframework.http.MediaType
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 
 @Service
 class FundaClientHouse(val webClient: WebClient) : HouseWebClient {
-    suspend fun getBuyHouseByName(city: String): Unit {
-        println("wew")
-    }
 
-    override suspend fun getHousesByCityWithinRange(cityName: String, minimum : Long, maximum: Long) : List<BuyHouseDTO> {
+    override suspend fun getHousesByCityWithinRange(cityName: String, minimum: Long, maximum: Long): List<BuyHouseDTO> {
         val returnValue = coroutineScope {
             val url = "https://funda.nl/koop/$cityName/$minimum-$maximum"
             val result = webClient.get()
@@ -119,10 +114,6 @@ class FundaClientHouse(val webClient: WebClient) : HouseWebClient {
             return@coroutineScope houses
         }
         return returnValue
-    }
-
-    override suspend fun getBuyHouseByCityAndPriceRange(cityName: String, range: LongRange) {
-        TODO("Not yet implemented")
     }
 }
 
