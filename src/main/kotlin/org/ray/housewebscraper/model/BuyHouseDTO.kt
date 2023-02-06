@@ -9,5 +9,4 @@ data class BuyHouseDTO(
     val surface: String,
     val numberOfRooms: String,
     val link: String,
-
 )
