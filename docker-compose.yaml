@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mongo_db
+    ports:
+      - "9000:9000"
+  mongo_db:
+    image: "mongo:5.0.0"
+    restart: always
+    ports:
+      - "27017:27017"

@@ -45,6 +45,9 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.amqp:spring-rabbit-test")
     testImplementation("org.springframework.security:spring-security-test")
+
+    // arrow
+    implementation("io.arrow-kt:arrow-core:1.1.2")
 }
 
 dependencyManagement {

@@ -1,6 +1,10 @@
-package org.ray.housewebscraper.model
+package org.ray.housewebscraper.model.entities
 
-data class BuyHouseDTO(
+import org.springframework.data.mongodb.core.mapping.Document
+
+
+@Document("BuyHouses")
+data class BuyHouseDocument(
     val street: String,
     val houseNumber: String,
     val zipCode: String,

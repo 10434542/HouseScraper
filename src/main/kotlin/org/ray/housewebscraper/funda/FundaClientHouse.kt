@@ -1,17 +1,28 @@
 package org.ray.housewebscraper.funda
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.nimbusds.oauth2.sdk.util.StringUtils
 import kotlinx.coroutines.*
+import kotlinx.coroutines.reactor.awaitSingle
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.NodeTraversor
-import org.ray.housewebscraper.model.BuyHouseDTO
-import org.ray.housewebscraper.model.HouseWebClient
+import org.ray.housewebscraper.model.entities.BuyHouseDTO
+import org.ray.housewebscraper.model.interfaces.HouseWebClient
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.reactive.function.client.awaitBodyOrNull
+import reactor.kotlin.core.publisher.toMono
+import java.util.function.Function
+import java.util.function.Predicate
 
 @Service
 class FundaClientHouse(val webClient: WebClient) : HouseWebClient {
@@ -23,7 +34,18 @@ class FundaClientHouse(val webClient: WebClient) : HouseWebClient {
                 .uri(url)
                 .accept(MediaType.APPLICATION_XML)
                 .retrieve()
+//                .onStatus(
+//                    Predicate {
+//                        it.isError
+//                    },
+//                    Function { }
+//
+//                )
                 .awaitBody<String>()
+//                .awaitBodyOrNull<String>()
+//            if (result == null) {
+//                return@coroutineScope Either.left()
+//            }
             val document: Document = Jsoup.parse(result)
 
             val regex = """^/koop/$cityName/[0-9]+-[0-9]+/p[0-9]+/$"""
@@ -37,7 +59,7 @@ class FundaClientHouse(val webClient: WebClient) : HouseWebClient {
             ).map { "$url/p$it" }
             val houses = allLinks.take(4).toList().map {
                 async {
-                    val streetList: MutableList<String> = mutableListOf<String>()
+                    val streetList: MutableList<String> = mutableListOf()
                     val cityList: MutableList<String> = mutableListOf()
                     val houseNumberList: MutableList<String> = mutableListOf()
                     val zipCodeList: MutableList<String> = mutableListOf()
@@ -138,4 +160,14 @@ fun findFirstHouseNumberIndex(literal: List<String>): Int {
         what
     }.size
 }
+// TODO: use either for errorhandling.
+//suspend inline fun <reified T : Any> WebClient.ResponseSpec.tryAwaitBodyOrElseEither(default: T): T = {
+//    val value = awaitBody()
+//    try {
+//        awaitBody()
+//    } catch (e: Exception) {
+//        log.warn("Remote request failed, returning default value ($default)", e)
+//        default
+//    }
+//}
 

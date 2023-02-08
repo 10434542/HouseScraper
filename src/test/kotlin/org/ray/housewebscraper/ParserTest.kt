@@ -1,5 +1,6 @@
 package org.ray.housewebscraper
 
+import arrow.core.Either
 import com.nimbusds.oauth2.sdk.util.StringUtils.isAlpha
 import com.nimbusds.oauth2.sdk.util.StringUtils.isNumeric
 import kotlinx.coroutines.async
@@ -10,7 +11,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.NodeTraversor
 import org.junit.jupiter.api.Test
-import org.ray.housewebscraper.model.BuyHouseDTO
+import org.ray.housewebscraper.model.entities.BuyHouseDTO
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.http.codec.ClientCodecConfigurer
@@ -19,10 +20,11 @@ import org.springframework.util.MimeTypeUtils
 import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.reactive.function.client.awaitBodyOrNull
 import reactor.netty.http.client.HttpClient
 
 
-private const val CITY = """haarlem"""
+private const val CITY = """amsterdam"""
 
 class ParserTest {
 
@@ -84,6 +86,7 @@ class ParserTest {
             .accept(MediaType.APPLICATION_XML)
             .retrieve()
             .awaitBody<String>()
+
         // parse first result
         val document: Document = Jsoup.parse(result)
         val regex = """^/koop/$CITY/[0-9]+-[0-9]+/p[0-9]+/$"""
@@ -100,7 +103,7 @@ class ParserTest {
         // search result media and search result promo add up to the total amount of ads per page, get them independently?
         val houses = allLinks.take(4).toList().map {
             async {
-                val streetList: MutableList<String> = mutableListOf<String>()
+                val streetList: MutableList<String> = mutableListOf()
                 val cityList: MutableList<String> = mutableListOf()
                 val houseNumberList: MutableList<String> = mutableListOf()
                 val zipCodeList: MutableList<String> = mutableListOf()
@@ -176,10 +179,9 @@ class ParserTest {
 //                return@async houseDocument.select(".search-result-media a[data-object-url-tracking*=\"resultlist\"]").toList()
             }
         }.awaitAll().flatten()
-        print("hey" + houses.size)
-//        houses.forEach {
-//            print("hello funda $it")
-//        }
+        houses.forEach {
+            print("hello funda $it")
+        }
 //        TODO("use search-result-content-inner instead of the search result media")
     }
 
