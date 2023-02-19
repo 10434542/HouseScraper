@@ -1,21 +1,35 @@
 package org.ray.housewebscraper.persistance.repositories
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.withContext
 import org.ray.housewebscraper.model.entities.BuyHouseDocument
+import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 
 class BuyHouseRepositoryImpl(
     private val mongoTemplate: ReactiveMongoTemplate,
+    private val mongoOperations: ReactiveMongoOperations
 ) : BuyHouseRepository {
     override suspend fun insert(buyHouseDocument: BuyHouseDocument): BuyHouseDocument {
-        TODO("Not yet implemented")
+        return mongoTemplate.insert(buyHouseDocument).awaitSingle()
     }
 
     override suspend fun getBuyHouseById(string: String): BuyHouseDocument {
-        TODO("Not yet implemented")
+        val query = Query.query(Criteria.where("key").`is`(string))
+        return mongoOperations.findOne(query, BuyHouseDocument::class.java).awaitSingle()
     }
 
-    override suspend fun getBuyHousesByCity(city: String): Flow<BuyHouseDocument> {
-        TODO("Not yet implemented")
+    override suspend fun getBuyHousesByCity(city: String): Flow<BuyHouseDocument> = coroutineScope {
+        val buyHouseDocuments = withContext(Dispatchers.Default) {
+            mongoOperations.find(Query().addCriteria(Criteria.where("city").`is`(city)), BuyHouseDocument::class.java)
+                .asFlow()
+        }
+        return@coroutineScope buyHouseDocuments;
     }
 }

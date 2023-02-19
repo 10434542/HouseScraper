@@ -23,10 +23,10 @@ class MongoConfiguration(private val mongoTemplate: ReactiveMongoTemplate) {
     private fun init() = runBlocking {
         withContext(Dispatchers.IO) {
             mongoTemplate.indexOps(BuyHouseDocument::class.java)
-                .ensureIndex(Index("aggregateId", Sort.DEFAULT_DIRECTION).unique())
+                .ensureIndex(Index("key", Sort.DEFAULT_DIRECTION).unique())
                 .awaitSingle()
             mongoTemplate.indexOps(BuyHouseDocument::class.java).indexInfo.toIterable()
-                .also { log.info("MongoDB connected, bankAccounts aggregateId index created: $it") }
+                .also { log.info("MongoDB connected, house key index created: $it") }
         }
     }
 }

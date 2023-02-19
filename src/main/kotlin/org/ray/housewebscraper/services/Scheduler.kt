@@ -20,7 +20,5 @@ class Scheduler(@Autowired val webClients: List<HouseWebClient>) {
                }
            }
         }.awaitAll()
-//            .flatten()
-
     }
 }
