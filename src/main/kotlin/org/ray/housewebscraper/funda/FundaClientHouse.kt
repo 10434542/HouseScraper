@@ -10,6 +10,7 @@ import org.jsoup.select.NodeTraversor
 import org.jsoup.select.NodeVisitor
 import org.ray.housewebscraper.model.entities.BuyHouseDTO
 import org.ray.housewebscraper.model.interfaces.HouseWebClient
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
@@ -17,7 +18,8 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 
 @Service
-class FundaClientHouse(val webClient: WebClient) : HouseWebClient {
+@Qualifier("Funda")
+class FundaClientHouse(private val webClient: WebClient) : HouseWebClient {
 
     override suspend fun getHousesByCityWithinRange(
         cityName: String,

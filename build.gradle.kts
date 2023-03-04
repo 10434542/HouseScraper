@@ -45,6 +45,10 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.amqp:spring-rabbit-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("io.mockk:mockk:1.9.3")
+    // see stackoverflow: https://stackoverflow.com/questions/73799505/unresolved-reference-mockk
+    testImplementation("io.mockk:mockk-jvm:1.9.3")
+
 
     // arrow
     implementation("io.arrow-kt:arrow-core:1.1.2")

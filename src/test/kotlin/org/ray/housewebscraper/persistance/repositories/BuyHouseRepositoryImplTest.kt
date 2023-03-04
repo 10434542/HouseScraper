@@ -5,8 +5,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
+import org.springframework.test.web.reactive.server.WebTestClient
 
-internal class BuyHouseRepositoryImplTest {
+class BuyHouseRepositoryImplTest {
+    val responseSpec: mockk<WebTestClient.ResponseSpec>(relaxed = true)
 
     @BeforeEach
     fun setUp() {
