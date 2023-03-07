@@ -10,7 +10,7 @@ class RootController(val clientList: Map<String, HouseWebClient>) {
 
     @GetMapping("/trigger")
     suspend fun findBuyHouse(): List<BuyHouseDTO> {
-        clientList["fundaClientHouse"]?.getHousesByCityWithinRange("Haarlem", 0, 100000)
+        clientList["fundaClientHouse"]?.getHousesByCityWithinRange("Haarlem", 0, 100000, 0)
         return emptyList()
     }
 
