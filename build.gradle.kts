@@ -54,6 +54,7 @@ dependencies {
     testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.6.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
     testImplementation("com.ninja-squad:springmockk:4.0.1")
+    testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock:4.0.1")
 
 
     // arrow
