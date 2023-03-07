@@ -6,6 +6,8 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
 @SpringBootTest
+//@SpringBootTest(classes = [HouseWebScraperSpringApplication::class])
+//@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class, MongoDataAutoConfiguration::class])
 class NoMongoConfigurationPresent {
 
     @MockBean
