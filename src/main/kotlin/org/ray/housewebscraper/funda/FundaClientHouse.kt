@@ -1,7 +1,6 @@
 package org.ray.housewebscraper.funda
 
 import arrow.core.*
-import com.nimbusds.oauth2.sdk.util.StringUtils
 import kotlinx.coroutines.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -15,7 +14,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBody
 
 @Service
 @Qualifier("Funda")
@@ -24,7 +22,8 @@ class FundaClientHouse(private val webClient: WebClient) : HouseWebClient {
     override suspend fun getHousesByCityWithinRange(
         cityName: String,
         minimum: Long,
-        maximum: Long
+        maximum: Long,
+        pages: Int,
     ): Either<Throwable, List<BuyHouseDTO>> {
         val returnValue = coroutineScope {
             val url = "https://funda.nl/koop/$cityName/$minimum-$maximum"
@@ -45,7 +44,7 @@ class FundaClientHouse(private val webClient: WebClient) : HouseWebClient {
                     pageNumber.split("p").last().toInt()
                 ).map {
                     "$url/p$it"
-                }.take(4).toList().map {
+                }.take(pages).toList().map {
                     async {
                         val streetList: MutableList<String> = mutableListOf()
                         val cityList: MutableList<String> = mutableListOf()
@@ -146,35 +145,6 @@ class FundaClientHouse(private val webClient: WebClient) : HouseWebClient {
 class FundaVisitor() : NodeVisitor {
     override fun head(node: Node, depth: Int) {
         TODO("Not yet implemented")
-    }
-}
-
-inline fun <T, V> zip(vararg lists: List<T>, transform: (List<T>) -> V): List<V> {
-    val minSize = lists.map(List<T>::size).min()
-    val list = ArrayList<V>(minSize)
-
-    val iterators = lists.map { it.iterator() }
-    var i = 0
-    while (i < minSize) {
-        list.add(transform(iterators.map { it.next() }))
-        i++
-    }
-
-    return list
-}
-
-fun findFirstHouseNumberIndex(literal: List<String>): Int {
-    return literal.takeWhile {
-        val what = StringUtils.isAlpha(it) or !StringUtils.isNumeric(it)
-        println("$it + $what")
-        what
-    }.size
-}
-
-// TODO: use either for errorhandling.
-suspend inline fun <reified T : Any> WebClient.ResponseSpec.tryAwaitBodyOrElseEither(): Either<Throwable, T> {
-    return Either.catch {
-        awaitBody()
     }
 }
 
