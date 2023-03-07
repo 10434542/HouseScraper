@@ -41,13 +41,19 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(module = "mockito-core")
+    }
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.amqp:spring-rabbit-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.mockk:mockk:1.13.4")
     // see stackoverflow: https://stackoverflow.com/questions/73799505/unresolved-reference-mockk
     testImplementation("io.mockk:mockk-jvm:1.13.4")
+    // needed for springboottests since we dont have mongo running
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.6.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+    testImplementation("com.ninja-squad:springmockk:4.0.1")
 
 
     // arrow
