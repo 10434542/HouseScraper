@@ -16,7 +16,7 @@ class Scheduler(@Autowired val webClients: List<HouseWebClient>) {
         val result = webClients.map {
            coroutineScope {
                async {
-                   it.getHousesByCityWithinRange("Haarlem", 0, 300000)
+                   it.getHousesByCityWithinRange("Haarlem", 0, 300000, 1)
                }
            }
         }.awaitAll()
