@@ -7,6 +7,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.select.NodeTraversor
 import org.jsoup.select.NodeVisitor
+import org.ray.housewebscraper.funda.config.FundaConfigurationProperties
 import org.ray.housewebscraper.model.entities.BuyHouseDTO
 import org.ray.housewebscraper.model.interfaces.HouseWebClient
 import org.springframework.beans.factory.annotation.Qualifier
@@ -17,7 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Service
 @Qualifier("Funda")
-class FundaClientHouse(private val webClient: WebClient) : HouseWebClient {
+class FundaClientHouse(private val webClient: WebClient, private val configuration: FundaConfigurationProperties) : HouseWebClient {
 
     override suspend fun getHousesByCityWithinRange(
         cityName: String,
@@ -26,7 +27,7 @@ class FundaClientHouse(private val webClient: WebClient) : HouseWebClient {
         pages: Int,
     ): Either<Throwable, List<BuyHouseDTO>> {
         val returnValue = coroutineScope {
-            val url = "https://funda.nl/koop/$cityName/$minimum-$maximum"
+            val url = "${configuration.url}/$cityName/$minimum-$maximum"
             val result = webClient.get()
                 .uri(url)
                 .accept(MediaType.APPLICATION_XML)
@@ -59,8 +60,8 @@ class FundaClientHouse(private val webClient: WebClient) : HouseWebClient {
                             .accept(MediaType.APPLICATION_XML)
                             .retrieve()
                             .tryAwaitBodyOrElseEither<String>()
-                            .map lit@{
-                                val children = Jsoup.parse(it).select(".search-result-content-inner")
+                            .map lit@{ something ->
+                                val children = Jsoup.parse(something).select(".search-result-content-inner")
                                 NodeTraversor.traverse({ node, _ ->
                                     val street: String
                                     val houseNumber: String

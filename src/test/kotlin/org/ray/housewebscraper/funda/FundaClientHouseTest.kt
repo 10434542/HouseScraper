@@ -17,6 +17,7 @@ import org.ray.housewebscraper.utility.testslices.NoMongoConfigurationPresent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 
@@ -37,13 +38,6 @@ internal class FundaClientHouseTest : NoMongoConfigurationPresent() {
 
     @BeforeEach
     fun setUp() {
-//        `when`(
-//            client.get().uri(anyString()).accept().retrieve()
-//                .tryAwaitBodyOrElseEither<String>()
-//        ).thenReturn(this::class.java.getResource("firstAnswer.html")
-//            ?.let { Either.Right(it.readText(Charsets.UTF_8)) })
-//            .thenReturn(this::class.java.getResource("secondAnswer.html")
-//                ?.let { Either.Right(it.readText(Charsets.UTF_8)) })
     }
 
     @AfterEach
@@ -70,6 +64,7 @@ internal class FundaClientHouseTest : NoMongoConfigurationPresent() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun getHousesByCityWithinRange(): Unit = runTest {
+        stubResponse("localhost:${wmServer.port()}", "empty", HttpStatus.BAD_REQUEST.value())
         val result = fundaClient.getHousesByCityWithinRange("haarlem", 100000L, 300000L, 1)
         assertThat(result.isLeft()).isEqualTo(true)
     }
