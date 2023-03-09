@@ -27,7 +27,7 @@ class FundaClientHouse(private val webClient: WebClient, private val configurati
         pages: Int,
     ): Either<Throwable, List<BuyHouseDTO>> {
         val returnValue = coroutineScope {
-            val url = "${configuration.url}/$cityName/$minimum-$maximum"
+            val url = "${configuration.url}/koop/$cityName/$minimum-$maximum"
             val result = webClient.get()
                 .uri(url)
                 .accept(MediaType.APPLICATION_XML)

@@ -1,9 +1,10 @@
 package org.ray.housewebscraper.funda
 
+import arrow.core.valid
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.apache.http.HttpHeaders
 import org.assertj.core.api.Assertions.assertThat
@@ -56,7 +57,7 @@ internal class FundaClientHouseTest : NoMongoConfigurationPresent() {
                     aResponse()
                         .withStatus(responseStatus)
                         .withBody(responseBody)
-                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
+                        .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_XML_VALUE)
                 )
         )
     }
@@ -67,9 +68,28 @@ internal class FundaClientHouseTest : NoMongoConfigurationPresent() {
         stubResponse("localhost:${wmServer.port()}", "empty", HttpStatus.BAD_REQUEST.value())
         val result = fundaClient.getHousesByCityWithinRange("haarlem", 100000L, 300000L, 1)
         assertThat(result.isLeft()).isEqualTo(true)
+
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun testResource(): Unit {
+        stubResponse("/koop/haarlem/100000-300000",
+            getResource("fundaTestResponse.html"), HttpStatus.OK.value())
+        stubResponse("/koop/haarlem/100000-300000/p1",
+            getResource("fundaTestResponse.html"), HttpStatus.OK.value())
+        return runBlocking {
+            print(getResource("fundaTestResponse.html"))
+            val result = fundaClient.getHousesByCityWithinRange("haarlem", 100000L, 300000L, 1)
+            assertThat(result.isRight()).isEqualTo(true)
+        }
     }
 
     @Test
     fun contextLoads() {
+    }
+
+    fun getResource(path: String) : String {
+        return this.javaClass.classLoader.getResource("webclientresponses/funda/fundaTestResponse.html")?.readText(Charsets.UTF_8) ?: "not found"
     }
 }
