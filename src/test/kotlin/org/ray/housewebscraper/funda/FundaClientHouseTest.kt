@@ -1,6 +1,6 @@
 package org.ray.housewebscraper.funda
 
-import arrow.core.valid
+import arrow.core.getOrElse
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,7 +49,7 @@ internal class FundaClientHouseTest : NoMongoConfigurationPresent() {
     private fun stubResponse(
         url: String,
         responseBody: String,
-        responseStatus: Int = org.springframework.http.HttpStatus.OK.value()
+        responseStatus: Int = HttpStatus.OK.value()
     ) {
         wmServer.stubFor(
             get(url)
@@ -79,9 +79,9 @@ internal class FundaClientHouseTest : NoMongoConfigurationPresent() {
         stubResponse("/koop/haarlem/100000-300000/p1",
             getResource("fundaTestResponse.html"), HttpStatus.OK.value())
         return runBlocking {
-            print(getResource("fundaTestResponse.html"))
             val result = fundaClient.getHousesByCityWithinRange("haarlem", 100000L, 300000L, 1)
             assertThat(result.isRight()).isEqualTo(true)
+            assertThat(result.getOrElse { null }).isNotEmpty()
         }
     }
 
