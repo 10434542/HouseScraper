@@ -2,6 +2,8 @@ package org.ray.housewebscraper.persistance.repositories
 
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -21,8 +23,12 @@ class BuyHouseRepositoryImplTest {
 
     private val repository: BuyHouseRepository = BuyHouseRepositoryImpl(mockTemplate);
 
+    private val mockBuyHouseDocument = mockk<BuyHouseDocument>(relaxed = true)
+
+
     @BeforeEach
     fun setUp() {
+        mockkStatic("kotlinx.coroutines.reactor.MonoKt")
 
         document = BuyHouseDocument(
             "hank street",
@@ -34,22 +40,12 @@ class BuyHouseRepositoryImplTest {
             "1",
             "localhost"
             )
+
     }
 
     @AfterEach
     fun tearDown() {
         unmockkAll()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    @Test
-    fun insert(): Unit = runTest {
-        val mono = Mono.just(document)
-        every { mockTemplate.insert(any<BuyHouseDocument>(), any()) } returns mono
-        coEvery { mono.awaitSingle() } returns document
-//        coEvery { mockTemplate.insert(any<BuyHouseDocument>()).awaitSingle() } returns document
-        val result = repository.getBuyHouseById("1010NU66")
-        assertThat(result).isEqualTo(document)
     }
 
     @Test
@@ -60,14 +56,11 @@ class BuyHouseRepositoryImplTest {
     fun getBuyHousesByCity() {
     }
     @Test
-    fun testMongoTemplate() = runBlocking {
-        mockkStatic("kotlinx.coroutines.reactor.MonoKt")
+    fun `insert will return a buyHouseDocument`() = runBlocking {
 //        val mockMongoTemplate = mockk<ReactiveMongoTemplate>(relaxed = true)
 //        val mockResult = mockk<BuyHouseDocument>()
-        val mockInsertResult = mockk<BuyHouseDocument>(relaxed = true)
-
         // mock the insert operation to return a Mono of MyModel
-        every { mockTemplate.insert(any<BuyHouseDocument>()) } returns Mono.just(mockInsertResult)
+        every { mockTemplate.insert(any<BuyHouseDocument>()) } returns Mono.just(mockBuyHouseDocument)
 
         // mock the awaitSingle function to return the mockResult
         coEvery { any<Mono<BuyHouseDocument>>().awaitSingle() } returns document
@@ -79,5 +72,26 @@ class BuyHouseRepositoryImplTest {
         // assert that the result matches the mock result
         assertEquals(document, result)
         // verify that the insert operation was called with the correct argument
+    }
+
+    @Test
+    fun `getHouseById will return a buyHouseDocument`() = runBlocking {
+
+        every { mockTemplate.findOne(any(), any<Class<*>>())} returns Mono.just(mockBuyHouseDocument)
+        coEvery { any<Mono<BuyHouseDocument>>().awaitSingle()} returns document
+
+        val result = repository.getBuyHouseById("whatever")
+        assertEquals(document, result)
+    }
+
+    @Test
+    fun `getHouseByCity will return a buyHouseDocument`() = runBlocking {
+        mockkStatic("kotlinx.coroutines.reactive.ReactiveFlowKt")
+
+        every { mockTemplate.find(any(), any<Class<*>>()).asFlow()} returns flowOf(document)
+
+        val result = repository.getBuyHousesByCity("Amsterdam")
+        assertEquals(document, result.first())
+
     }
 }
