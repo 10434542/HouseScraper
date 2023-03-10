@@ -10,7 +10,9 @@ import org.ray.housewebscraper.model.entities.BuyHouseDocument
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.stereotype.Repository
 
+@Repository
 class BuyHouseRepositoryImpl(
     private val mongoTemplate: ReactiveMongoTemplate,
 ) : BuyHouseRepository {
