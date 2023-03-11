@@ -51,7 +51,7 @@ dependencies {
     // see stackoverflow: https://stackoverflow.com/questions/73799505/unresolved-reference-mockk
     testImplementation("io.mockk:mockk-jvm:1.13.4")
     // needed for springboottests since we dont have mongo running
-    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.6.1")
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring30x:4.6.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
     testImplementation("com.ninja-squad:springmockk:4.0.1")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock:4.0.1")
