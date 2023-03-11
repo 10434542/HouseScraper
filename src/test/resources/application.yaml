@@ -1,0 +1,22 @@
+funda:
+  url: https://www.funda.nl/
+
+pararius:
+  url: https://www.pararius.nl
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 3.6.1
+
+spring:
+  data:
+    mongodb:
+      username: what
+      password: who
+      host: localhost
+      port: 0
+
+server:
+  port: 9000
