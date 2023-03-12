@@ -8,7 +8,7 @@ de:
   flapdoodle:
     mongodb:
       embedded:
-        version: 3.6.1
+        version: 5.0.0
 
 spring:
   data:
@@ -16,6 +16,7 @@ spring:
       username: what
       password: who
       host: localhost
+      authentication-database: dbname
       port: 0
 
 server:
