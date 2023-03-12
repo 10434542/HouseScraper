@@ -1,15 +1,13 @@
 package org.ray.housewebscraper.persistance.repositories
 
 import io.mockk.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.ray.housewebscraper.model.entities.BuyHouseDocument
@@ -48,13 +46,6 @@ class BuyHouseRepositoryImplTest {
         unmockkAll()
     }
 
-    @Test
-    fun getBuyHouseById() {
-    }
-
-    @Test
-    fun getBuyHousesByCity() {
-    }
     @Test
     fun `insert will return a buyHouseDocument`() = runBlocking {
 //        val mockMongoTemplate = mockk<ReactiveMongoTemplate>(relaxed = true)
