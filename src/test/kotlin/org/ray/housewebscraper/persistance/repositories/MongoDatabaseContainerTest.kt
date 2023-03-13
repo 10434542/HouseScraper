@@ -5,14 +5,9 @@ import de.flapdoodle.os.Platform
 import io.mockk.mockkStatic
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.ray.housewebscraper.model.entities.BuyHouseDocument
-import org.ray.housewebscraper.utility.testslices.MongoConfigurationPresent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.ComponentScan
@@ -20,7 +15,8 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
@@ -30,7 +26,10 @@ import org.testcontainers.utility.DockerImageName
 @SpringBootTest
 @ExtendWith(SpringExtension::class)
 internal class MongoDatabaseContainerTest {
-    // TODO: fix authentication issue due to indexOps method in mongoconfiguration of this project.
+    // DONE : fix authentication issue due to indexOps method in mongoconfiguration of this project.
+    // TODO: enable authentication using spring security?
+    //    also check https://github.com/testcontainers/testcontainers-java/issues/6420 for the "failed to close response"
+    //    message ocurring in the logs
 
     @Autowired
     private lateinit var repository: BuyHouseRepository
@@ -44,15 +43,23 @@ internal class MongoDatabaseContainerTest {
 
         @JvmStatic
         @Container
-        private val MONGO_DB_CONTAINER: MongoDBContainer = MongoDBContainer(
-            DockerImageName.parse("mongo:5.0.0"))
+        private val MONGO_DB_CONTAINER = GenericContainer(
+            DockerImageName.parse("mongo:5.0.0")
+        )
+            .withEnv("MONGO_INITDB_ROOT_USERNAME", "USERNAME")
+            .withEnv("MONGO_INITDB_ROOT_PASSWORD", "PASSWORD")
+            .withEnv("MONGO_INITDB_DATABASE", "TEST_DATABASE")
+            .withExposedPorts(27017)
+            .waitingFor(Wait.forLogMessage("(?i).*Waiting for connections*.*", 1));
 
         @JvmStatic
         @DynamicPropertySource
         fun mongoDbProperties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.data.mongodb.uri") { MONGO_DB_CONTAINER.replicaSetUrl }
+            registry.add("spring.data.mongodb.username") { "USERNAME" }
+//            registry.add("spring.data.mongodb.uri") { MONGO_DB_CONTAINER.replicaSetUrl }
+            registry.add("spring.data.mongodb.password") { "PASSWORD" }
             registry.add("spring.data.mongodb.host") { MONGO_DB_CONTAINER.host }
-            registry.add("spring.data.mongodb.port") { 0 }
+            registry.add("spring.data.mongodb.port") { MONGO_DB_CONTAINER.firstMappedPort }
         }
 
         @BeforeAll

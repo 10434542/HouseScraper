@@ -13,10 +13,9 @@ de:
 spring:
   data:
     mongodb:
-      username: what
-      password: who
+      username: USERNAME
+      password: PASSWORD
       host: localhost
-      authentication-database: dbname
       port: 0
 
 server:
