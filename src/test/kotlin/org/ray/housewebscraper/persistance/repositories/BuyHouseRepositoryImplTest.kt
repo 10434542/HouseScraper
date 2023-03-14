@@ -17,9 +17,9 @@ import reactor.core.publisher.Mono
 class BuyHouseRepositoryImplTest {
     private val mockTemplate = mockk<ReactiveMongoTemplate>(relaxed = true) // fixed it
 
-    private lateinit var document: BuyHouseDocument;
+    private lateinit var document: BuyHouseDocument
 
-    private val repository: BuyHouseRepository = BuyHouseRepositoryImpl(mockTemplate);
+    private val repository: BuyHouseRepository = BuyHouseRepositoryImpl(mockTemplate)
 
     private val mockBuyHouseDocument = mockk<BuyHouseDocument>(relaxed = true)
 
@@ -37,7 +37,7 @@ class BuyHouseRepositoryImplTest {
             "10m2",
             "1",
             "localhost"
-            )
+        )
 
     }
 
@@ -68,8 +68,8 @@ class BuyHouseRepositoryImplTest {
     @Test
     fun `getHouseById will return a buyHouseDocument`() = runBlocking {
 
-        every { mockTemplate.findOne(any(), any<Class<*>>())} returns Mono.just(mockBuyHouseDocument)
-        coEvery { any<Mono<BuyHouseDocument>>().awaitSingle()} returns document
+        every { mockTemplate.findOne(any(), any<Class<*>>()) } returns Mono.just(mockBuyHouseDocument)
+        coEvery { any<Mono<BuyHouseDocument>>().awaitSingle() } returns document
 
         val result = repository.getBuyHouseById("whatever")
         assertEquals(document, result)
@@ -79,10 +79,17 @@ class BuyHouseRepositoryImplTest {
     fun `getHouseByCity will return a buyHouseDocument`() = runBlocking {
         mockkStatic("kotlinx.coroutines.reactive.ReactiveFlowKt")
 
-        every { mockTemplate.find(any(), any<Class<*>>()).asFlow()} returns flowOf(document)
+        every { mockTemplate.find(any(), any<Class<*>>()).asFlow() } returns flowOf(document)
 
         val result = repository.getBuyHousesByCity("Amsterdam")
         assertEquals(document, result.first())
 
+    }
+
+    @Test
+    fun `given a buyHouseDocument present, when update then getBuyHouseById will return an updated document`() {
+        runBlocking {
+            TODO("write test for the update method of buyHouseRepositoryImpl")
+        }
     }
 }

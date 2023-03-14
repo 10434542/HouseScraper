@@ -1,7 +1,5 @@
 package org.ray.housewebscraper.persistance.repositories
 
-import de.flapdoodle.os.CommonOS
-import de.flapdoodle.os.Platform
 import io.mockk.mockkStatic
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -40,6 +38,7 @@ internal class MongoDatabaseContainerTest {
     private lateinit var document: BuyHouseDocument
 
     companion object {
+        private const val BUY_HOUSE_COLLECTION = "BuyHouses"
 
         @JvmStatic
         @Container
@@ -50,7 +49,7 @@ internal class MongoDatabaseContainerTest {
             .withEnv("MONGO_INITDB_ROOT_PASSWORD", "PASSWORD")
             .withEnv("MONGO_INITDB_DATABASE", "TEST_DATABASE")
             .withExposedPorts(27017)
-            .waitingFor(Wait.forLogMessage("(?i).*Waiting for connections*.*", 1));
+            .waitingFor(Wait.forLogMessage("(?i).*Waiting for connections*.*", 1))
 
         @JvmStatic
         @DynamicPropertySource
@@ -64,7 +63,7 @@ internal class MongoDatabaseContainerTest {
 
         @BeforeAll
         fun setup() {
-            MONGO_DB_CONTAINER.start();
+            MONGO_DB_CONTAINER.start()
         }
 
         @AfterAll
@@ -76,7 +75,7 @@ internal class MongoDatabaseContainerTest {
     @BeforeEach
     fun setUp() {
         mockkStatic("kotlinx.coroutines.reactor.MonoKt")
-
+        MONGO_DB_CONTAINER.execInContainer("db.${BUY_HOUSE_COLLECTION}.deleteMany({})")
         document = BuyHouseDocument(
             "hank street",
             "66",
@@ -93,10 +92,16 @@ internal class MongoDatabaseContainerTest {
     @Test
     fun `With BuyHouseDocument present, getBuyHouseById will return a document`() {
         runBlocking {
-            val whatever: Platform = Platform.detect(CommonOS.list())
             var insert = template.insert(document).block()
             val result = repository.getBuyHousesByCity("Amsterdam").first()
             Assertions.assertEquals(result, document)
+        }
+    }
+
+    @Test
+    fun `given a buyHouseDocument present, when update then getBuyHouseById will return an updated document`() {
+        runBlocking {
+            TODO("write test for the update method of buyHouseRepositoryImpl")
         }
     }
 }

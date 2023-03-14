@@ -1,5 +1,6 @@
 package org.ray.housewebscraper.persistance.repositories
 
+import com.mongodb.client.result.UpdateResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -10,6 +11,7 @@ import org.ray.housewebscraper.model.entities.BuyHouseDocument
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -20,8 +22,8 @@ class BuyHouseRepositoryImpl(
         return mongoTemplate.insert(buyHouseDocument).awaitSingle()
     }
 
-    override suspend fun getBuyHouseById(string: String): BuyHouseDocument {
-        val query = Query.query(Criteria.where("key").`is`(string))
+    override suspend fun getBuyHouseById(id: String): BuyHouseDocument {
+        val query = Query.query(Criteria.where("key").`is`(id))
         return mongoTemplate.findOne(query, BuyHouseDocument::class.java).awaitSingle()
     }
 
@@ -31,5 +33,11 @@ class BuyHouseRepositoryImpl(
                 .asFlow()
         }
         return@coroutineScope buyHouseDocuments
+    }
+
+    override suspend fun updateHousePriceById(id: String, price: String): UpdateResult {
+        val query = Query.query(Criteria.where("key").`is`(id))
+        val update = Update().set("price", price)
+        return mongoTemplate.updateFirst(query, update, BuyHouseDocument::class.java).awaitSingle()
     }
 }

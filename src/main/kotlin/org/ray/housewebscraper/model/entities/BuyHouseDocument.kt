@@ -4,8 +4,13 @@ import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.mapping.Document
 
 
-@Document("BuyHouses")
-@CompoundIndex(name = "key", def = "{'zipCode': 1, 'houseNumber': 1}")
+@Document(
+    value = "BuyHouses",
+)
+@CompoundIndex(
+    name = "key",
+    def = "{'zipCode': 1, 'houseNumber': 1}",
+)
 data class BuyHouseDocument(
     val street: String,
     val houseNumber: String,
