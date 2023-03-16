@@ -1,11 +1,13 @@
 package org.ray.housewebscraper.persistance.repositories
 
+import com.mongodb.client.result.UpdateResult
 import io.mockk.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
+import org.bson.BsonDocument
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -58,7 +60,7 @@ class BuyHouseRepositoryImplTest {
 
         // call the code under test
 //        val result = someFunctionThatUsesMongoTemplate(mockTemplate, mockResult)
-        val result = repository.getBuyHouseById("1010NU66")
+        val result = repository.getBuyHouseByPostalInfo("1010NU", "66")
 
         // assert that the result matches the mock result
         assertEquals(document, result)
@@ -71,7 +73,7 @@ class BuyHouseRepositoryImplTest {
         every { mockTemplate.findOne(any(), any<Class<*>>()) } returns Mono.just(mockBuyHouseDocument)
         coEvery { any<Mono<BuyHouseDocument>>().awaitSingle() } returns document
 
-        val result = repository.getBuyHouseById("whatever")
+        val result = repository.getBuyHouseByPostalInfo("1010NU", "66")
         assertEquals(document, result)
     }
 
@@ -88,8 +90,14 @@ class BuyHouseRepositoryImplTest {
 
     @Test
     fun `given a buyHouseDocument present, when update then getBuyHouseById will return an updated document`() {
+
         runBlocking {
-            TODO("write test for the update method of buyHouseRepositoryImpl")
+            val updateResult = UpdateResult.acknowledged(1, 2, BsonDocument(1))
+            every { mockTemplate.updateFirst(any(), any(), any<Class<*>>()) } returns Mono.just(updateResult)
+            coEvery { any<Mono<UpdateResult>>().awaitSingle() } returns updateResult
+
+            val result = repository.updateHousePriceById("1010NU", "66", "1000000");
+            assertEquals(updateResult, result)
         }
     }
 }

@@ -22,8 +22,8 @@ class BuyHouseRepositoryImpl(
         return mongoTemplate.insert(buyHouseDocument).awaitSingle()
     }
 
-    override suspend fun getBuyHouseById(id: String): BuyHouseDocument {
-        val query = Query.query(Criteria.where("key").`is`(id))
+    override suspend fun getBuyHouseByPostalInfo(postalCode: String, houseNumber: String): BuyHouseDocument {
+        val query = Query.query(Criteria.where("zipCode").`is`(postalCode).and("houseNumber").`is`(houseNumber))
         return mongoTemplate.findOne(query, BuyHouseDocument::class.java).awaitSingle()
     }
 
@@ -35,8 +35,8 @@ class BuyHouseRepositoryImpl(
         return@coroutineScope buyHouseDocuments
     }
 
-    override suspend fun updateHousePriceById(id: String, price: String): UpdateResult {
-        val query = Query.query(Criteria.where("key").`is`(id))
+    override suspend fun updateHousePriceById(postalCode: String, houseNumber: String, price: String): UpdateResult {
+        val query = Query.query(Criteria.where("zipCode").`is`(postalCode).and("houseNumber").`is`(houseNumber))
         val update = Update().set("price", price)
         return mongoTemplate.updateFirst(query, update, BuyHouseDocument::class.java).awaitSingle()
     }

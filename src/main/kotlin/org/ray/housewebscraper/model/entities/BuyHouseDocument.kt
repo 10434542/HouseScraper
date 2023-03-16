@@ -2,7 +2,7 @@ package org.ray.housewebscraper.model.entities
 
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.mapping.Document
-
+import org.springframework.data.mongodb.core.mapping.Field
 
 @Document(
     value = "BuyHouses",

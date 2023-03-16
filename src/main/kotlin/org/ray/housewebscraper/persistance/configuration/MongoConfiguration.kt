@@ -19,14 +19,14 @@ class MongoConfiguration(private val mongoTemplate: ReactiveMongoTemplate) {
         private val log = Loggers.getLogger(MongoConfiguration::class.java)
     }
 
-    @PostConstruct
-    private fun init() = runBlocking {
-        withContext(Dispatchers.IO) {
-            mongoTemplate.indexOps(BuyHouseDocument::class.java)
-                .ensureIndex(Index("key", Sort.DEFAULT_DIRECTION).unique())
-                .awaitSingle()
-            mongoTemplate.indexOps(BuyHouseDocument::class.java).indexInfo.toIterable()
-                .also { log.info("MongoDB connected, house key index created: $it") }
-        }
-    }
+//    @PostConstruct
+//    private fun init() = runBlocking {
+//        withContext(Dispatchers.IO) {
+//            mongoTemplate.indexOps(BuyHouseDocument::class.java)
+//                .ensureIndex(Index("key", Sort.DEFAULT_DIRECTION).unique())
+//                .awaitSingle()
+//            mongoTemplate.indexOps(BuyHouseDocument::class.java).indexInfo.toIterable()
+//                .also { log.info("MongoDB connected, house key index created: $it") }
+//        }
+//    }
 }

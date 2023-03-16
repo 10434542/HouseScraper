@@ -1,8 +1,16 @@
 package org.ray.housewebscraper.persistance.repositories
 
+import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
 import io.mockk.mockkStatic
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.ray.housewebscraper.model.entities.BuyHouseDocument
@@ -14,13 +22,14 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 
 @Testcontainers
-@ComponentScan
+@ComponentScan(excludeFilters = [ComponentScan.Filter(EmbeddedMongoAutoConfiguration::class)])
 @SpringBootTest
 @ExtendWith(SpringExtension::class)
 internal class MongoDatabaseContainerTest {
@@ -28,6 +37,7 @@ internal class MongoDatabaseContainerTest {
     // TODO: enable authentication using spring security?
     //    also check https://github.com/testcontainers/testcontainers-java/issues/6420 for the "failed to close response"
     //    message ocurring in the logs
+    // TOOD: remove autoconfiguration
 
     @Autowired
     private lateinit var repository: BuyHouseRepository
@@ -36,10 +46,9 @@ internal class MongoDatabaseContainerTest {
     private lateinit var template: ReactiveMongoTemplate
 
     private lateinit var document: BuyHouseDocument
-
     companion object {
         private const val BUY_HOUSE_COLLECTION = "BuyHouses"
-
+        private val mongo = MongoDBContainer("mongo:5.0.0")
         @JvmStatic
         @Container
         private val MONGO_DB_CONTAINER = GenericContainer(
@@ -75,7 +84,9 @@ internal class MongoDatabaseContainerTest {
     @BeforeEach
     fun setUp() {
         mockkStatic("kotlinx.coroutines.reactor.MonoKt")
-        MONGO_DB_CONTAINER.execInContainer("db.${BUY_HOUSE_COLLECTION}.deleteMany({})")
+        MONGO_DB_CONTAINER.execInContainer("sh",
+            "-c",
+            "mongosh mongo --eval \"db.${BUY_HOUSE_COLLECTION}.deleteMany({})\"")
         document = BuyHouseDocument(
             "hank street",
             "66",
@@ -88,20 +99,37 @@ internal class MongoDatabaseContainerTest {
         )
     }
 
+    @AfterEach
+    fun cleanUp() {
+        MONGO_DB_CONTAINER.execInContainer("sh",
+            "-c",
+            "mongosh mongo --eval \"db.${BUY_HOUSE_COLLECTION}.deleteMany({})\"")
+    }
 
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `With BuyHouseDocument present, getBuyHouseById will return a document`() {
-        runBlocking {
-            var insert = template.insert(document).block()
-            val result = repository.getBuyHousesByCity("Amsterdam").first()
-            Assertions.assertEquals(result, document)
+        runTest {
+            var insert = withContext(Dispatchers.IO) {
+                template.insert(document).block()
+            }
+            val results = repository.getBuyHousesByCity("Amsterdam").first()
+            Assertions.assertEquals(results, document)
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given a buyHouseDocument present, when update then getBuyHouseById will return an updated document`() {
-        runBlocking {
-            TODO("write test for the update method of buyHouseRepositoryImpl")
+        runTest {
+            var insert = withContext(Dispatchers.IO) {
+                template.insert(document).block()
+            }
+            val mutation = repository.updateHousePriceById("1010NU", "66", "150000")
+            val result = repository.getBuyHouseByPostalInfo("1010NU", "66")
+            assertThat(result.price).isEqualTo("150000")
+            Thread.sleep(3000)
         }
     }
 }

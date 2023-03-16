@@ -10,6 +10,9 @@ services:
     ports:
       - "9000:9000"
   mongo_db:
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=user
+      - MONGO_INITDB_ROOT_PASSWORD=password
     image: "mongo:5.0.0"
     restart: always
     ports:
