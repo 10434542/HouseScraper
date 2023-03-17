@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.ray.housewebscraper.model.entities.BuyHouseDocument
+import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import reactor.core.publisher.Mono
 
@@ -31,9 +32,8 @@ class BuyHouseRepositoryImplTest {
         mockkStatic("kotlinx.coroutines.reactor.MonoKt")
 
         document = BuyHouseDocument(
+            ZipCodeHouseNumber("1010NU", "66"),
             "hank street",
-            "66",
-            "1010NU",
             "Amsterdam",
             "100000",
             "10m2",
@@ -60,7 +60,7 @@ class BuyHouseRepositoryImplTest {
 
         // call the code under test
 //        val result = someFunctionThatUsesMongoTemplate(mockTemplate, mockResult)
-        val result = repository.getBuyHouseByPostalInfo("1010NU", "66")
+        val result = repository.getBuyHouseById(ZipCodeHouseNumber("1010NU", "66"))
 
         // assert that the result matches the mock result
         assertEquals(document, result)
@@ -73,7 +73,7 @@ class BuyHouseRepositoryImplTest {
         every { mockTemplate.findOne(any(), any<Class<*>>()) } returns Mono.just(mockBuyHouseDocument)
         coEvery { any<Mono<BuyHouseDocument>>().awaitSingle() } returns document
 
-        val result = repository.getBuyHouseByPostalInfo("1010NU", "66")
+        val result = repository.getBuyHouseById(ZipCodeHouseNumber("1010NU", "66"))
         assertEquals(document, result)
     }
 

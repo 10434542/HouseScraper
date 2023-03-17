@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.select.NodeTraversor
 import org.junit.jupiter.api.Test
 import org.ray.housewebscraper.model.entities.BuyHouseDTO
+import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.http.codec.ClientCodecConfigurer
@@ -172,7 +173,7 @@ class ParserTest {
                     numberOfRoomsList,
                     linkList,
                     transform = {
-                        BuyHouseDTO(it[0], it[1], it[2], it[3], it[4], it[5], it[6], it[7])
+                        BuyHouseDTO(ZipCodeHouseNumber(it[2], it[1]), it[0], it[3], it[4], it[5], it[6], it[7])
                     })
                 housesPerPage.forEach { println("dto $it") }
                 return@async housesPerPage

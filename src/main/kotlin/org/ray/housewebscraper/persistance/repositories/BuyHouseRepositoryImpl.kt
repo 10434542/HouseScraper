@@ -8,6 +8,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.withContext
 import org.ray.housewebscraper.model.entities.BuyHouseDocument
+import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -22,9 +23,8 @@ class BuyHouseRepositoryImpl(
         return mongoTemplate.insert(buyHouseDocument).awaitSingle()
     }
 
-    override suspend fun getBuyHouseByPostalInfo(postalCode: String, houseNumber: String): BuyHouseDocument {
-        val query = Query.query(Criteria.where("zipCode").`is`(postalCode).and("houseNumber").`is`(houseNumber))
-        return mongoTemplate.findOne(query, BuyHouseDocument::class.java).awaitSingle()
+    override suspend fun getBuyHouseById(id: ZipCodeHouseNumber): BuyHouseDocument {
+        return mongoTemplate.findById(id, BuyHouseDocument::class.java).awaitSingle()
     }
 
     override suspend fun getBuyHousesByCity(city: String): Flow<BuyHouseDocument> = coroutineScope {
@@ -36,7 +36,10 @@ class BuyHouseRepositoryImpl(
     }
 
     override suspend fun updateHousePriceById(postalCode: String, houseNumber: String, price: String): UpdateResult {
-        val query = Query.query(Criteria.where("zipCode").`is`(postalCode).and("houseNumber").`is`(houseNumber))
+        val query = Query.query(
+            Criteria
+                .where("zipCodeHouseNumber.zipCode").`is`(postalCode)
+                .and("zipCodeHouseNumber.houseNumber").`is`(houseNumber))
         val update = Update().set("price", price)
         return mongoTemplate.updateFirst(query, update, BuyHouseDocument::class.java).awaitSingle()
     }

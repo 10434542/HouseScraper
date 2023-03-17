@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.ray.housewebscraper.model.entities.BuyHouseDocument
+import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.context.annotation.ComponentScan
@@ -29,9 +30,8 @@ internal class MongoDatabaseComponentTest {
     @BeforeEach
     fun setUp() {
         document = BuyHouseDocument(
+            ZipCodeHouseNumber("1010NU", "66"),
             "hank street",
-            "66",
-            "1010NU",
             "Amsterdam",
             "100000",
             "10m2",

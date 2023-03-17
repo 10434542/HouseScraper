@@ -9,6 +9,7 @@ import org.jsoup.select.NodeTraversor
 import org.jsoup.select.NodeVisitor
 import org.ray.housewebscraper.funda.config.FundaConfigurationProperties
 import org.ray.housewebscraper.model.entities.BuyHouseDTO
+import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
 import org.ray.housewebscraper.model.interfaces.HouseWebClient
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
@@ -116,7 +117,7 @@ class FundaClientHouse(private val webClient: WebClient, private val configurati
                                     numberOfRoomsList,
                                     linkList,
                                     transform = {
-                                        BuyHouseDTO(it[0], it[1], it[2], it[3], it[4], it[5], it[6], it[7])
+                                        BuyHouseDTO(ZipCodeHouseNumber(it[2], it[1]), it[0], it[3], it[4], it[5], it[6], it[7])
                                     })
                                 return@lit housesPerPage
                             }
