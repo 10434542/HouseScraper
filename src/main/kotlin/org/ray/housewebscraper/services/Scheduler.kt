@@ -13,12 +13,12 @@ class Scheduler(@Autowired val webClients: List<HouseWebClient>) {
 
     @Scheduled(fixedDelayString = "PT1M", initialDelayString = "PT5S")
     suspend fun getLatestHousesByCity() {
-        val result = webClients.map {
-           coroutineScope {
-               async {
-                   it.getHousesByCityWithinRange("Haarlem", 0, 300000, 1)
-               }
-           }
+        val result = coroutineScope {
+            webClients.map {
+                async {
+                    it.getHousesByCityWithinRange("Haarlem", 0, 300000, 1)
+                }
+            }
         }.awaitAll()
     }
 }
