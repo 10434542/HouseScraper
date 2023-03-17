@@ -3,7 +3,9 @@ package org.ray.housewebscraper.persistance.repositories
 import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
 import io.mockk.mockkStatic
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -31,7 +33,6 @@ import org.testcontainers.utility.DockerImageName
 @ComponentScan(excludeFilters = [ComponentScan.Filter(EmbeddedMongoAutoConfiguration::class)])
 @SpringBootTest
 @ExtendWith(SpringExtension::class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class MongoDatabaseContainerTest {
     // DONE : fix authentication issue due to indexOps method in mongoconfiguration of this project.
     // TODO: enable authentication using spring security?
@@ -49,11 +50,7 @@ internal class MongoDatabaseContainerTest {
     private lateinit var document: BuyHouseDocument
 
     companion object {
-        private const val BUY_HOUSE_COLLECTION = "BuyHouses"
         private val mongo = MongoDBContainer("mongo:5.0.0")
-
-        @OptIn(ExperimentalCoroutinesApi::class)
-        private val testDispatcher = StandardTestDispatcher()
 
         @JvmStatic
         @Container
@@ -70,7 +67,6 @@ internal class MongoDatabaseContainerTest {
         @DynamicPropertySource
         fun mongoDbProperties(registry: DynamicPropertyRegistry) {
             registry.add("spring.data.mongodb.username") { "USERNAME" }
-//            registry.add("spring.data.mongodb.uri") { MONGO_DB_CONTAINER.replicaSetUrl }
             registry.add("spring.data.mongodb.password") { "PASSWORD" }
             registry.add("spring.data.mongodb.host") { MONGO_DB_CONTAINER.host }
             registry.add("spring.data.mongodb.port") { MONGO_DB_CONTAINER.firstMappedPort }
@@ -90,57 +86,50 @@ internal class MongoDatabaseContainerTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeEach
-    fun setUp(): Unit = synchronized(this) {
-        mockkStatic("kotlinx.coroutines.reactor.MonoKt")
-        document = BuyHouseDocument(
-            ZipCodeHouseNumber("1010NU", "66"),
-            "hank street",
-            "Amsterdam",
-            "100000",
-            "10m2",
-            "1",
-            "localhost"
-        )
-        synchronized(this) {
-            runBlocking {
-                var insert = withContext(Dispatchers.IO) {
-                    template.insert(document).block()
-                }
-            }
+    fun setUp() {
+        runBlocking {
+            mockkStatic("kotlinx.coroutines.reactor.MonoKt")
+            document = BuyHouseDocument(
+                ZipCodeHouseNumber("1010NU", "66"),
+                "hank street",
+                "Amsterdam",
+                "100000",
+                "10m2",
+                "1",
+                "localhost"
+            )
+            template.insert(document).awaitSingle()
         }
     }
 
+
     @AfterEach
     fun cleanUp() {
-        runBlocking {
-
-            launch {template.remove(
+        return runBlocking {
+            template.remove(
                 Query(
                     Criteria
-                        .where("zipCodeHouseNumber").`is`(ZipCodeHouseNumber("1010NU", "66"))
+                        .where("_id").`is`(ZipCodeHouseNumber("1010NU", "66"))
                 ), "BuyHouses"
-            )}.join()
+            ).block()
         }
     }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `With BuyHouseDocument present, getBuyHouseById will return a document`(): Unit = synchronized(this) {
-        runTest {
-            val results = repository.getBuyHousesByCity("Amsterdam").single()
-            Assertions.assertEquals(results, document)
-        }
+    fun `With BuyHouseDocument present, getBuyHouseById will return a document`(): Unit = runTest {
+        val results = repository.getBuyHousesByCity("Amsterdam").single()
+        Assertions.assertEquals(results, document)
+
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given a buyHouseDocument present, when update then getBuyHouseById will return an updated document`(): Unit =
-        synchronized(this) {
-            runTest() {
-                val mutation = repository.updateHousePriceById("1010NU", "66", "150000")
-                val result = repository.getBuyHouseById(ZipCodeHouseNumber("1010NU", "66"))
-                assertThat(result.price).isEqualTo("150000")
-            }
+        runTest {
+            val mutation = repository.updateHousePriceById("1010NU", "66", "150000")
+            val result = repository.getBuyHouseById(ZipCodeHouseNumber("1010NU", "66"))
+            assertThat(result.price).isEqualTo("150000")
         }
 }
