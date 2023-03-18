@@ -58,7 +58,7 @@ dependencies {
 
 
     // arrow
-    implementation("io.arrow-kt:arrow-core:1.1.2")
+    implementation("io.arrow-kt:arrow-core:1.1.5")
 }
 
 dependencyManagement {
