@@ -28,7 +28,7 @@ class ClientConfiguration(private val fundaConfigurationProperties: FundaConfigu
         return WebClient.builder()
             .baseUrl(fundaConfigurationProperties.url)
             .exchangeStrategies(ExchangeStrategies.builder().codecs { codecs ->
-                codecs.defaultCodecs().maxInMemorySize(1000000)
+                codecs.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)
                 codecs.defaultCodecs().jaxb2Decoder(
                     Jaxb2XmlDecoder(
                         MimeTypeUtils.APPLICATION_XML,
