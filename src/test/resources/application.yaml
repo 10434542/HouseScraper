@@ -4,12 +4,6 @@ funda:
 pararius:
   url: https://www.pararius.nl
 
-de:
-  flapdoodle:
-    mongodb:
-      embedded:
-        version: 5.0.0
-
 spring:
   data:
     mongodb:
@@ -17,6 +11,7 @@ spring:
       password: PASSWORD
       host: localhost
       port: 0
+      authentication-database: admin
 
 server:
   port: 9000
