@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.MongoDBContainer
@@ -30,8 +31,8 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 
 @Testcontainers
-@ComponentScan(excludeFilters = [ComponentScan.Filter(EmbeddedMongoAutoConfiguration::class)])
 @SpringBootTest
+@TestPropertySource(properties = ["spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration"])
 @ExtendWith(SpringExtension::class)
 internal class MongoDatabaseContainerTest {
     // DONE : fix authentication issue due to indexOps method in mongoconfiguration of this project.
