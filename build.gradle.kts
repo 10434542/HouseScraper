@@ -50,7 +50,7 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.4")
     testImplementation("io.mockk:mockk-jvm:1.13.4")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
-    testImplementation("com.ninja-squad:springmockk:4.0.1")
+    testImplementation("com.ninja-squad:springmockk:4.0.2")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock:4.0.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.6")
     testImplementation("org.testcontainers:mongodb:1.17.6")
