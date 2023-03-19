@@ -17,6 +17,7 @@ spring:
       password: PASSWORD
       host: localhost
       port: 0
+      authentication-database: admin
 
 server:
   port: 9000
