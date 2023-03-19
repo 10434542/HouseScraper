@@ -1,12 +1,10 @@
 package org.ray.housewebscraper.persistance.repositories
 
-import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
 import io.mockk.mockkStatic
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
@@ -15,7 +13,6 @@ import org.ray.housewebscraper.model.entities.BuyHouseDocument
 import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -51,7 +48,6 @@ internal class MongoDatabaseContainerTest {
     private lateinit var document: BuyHouseDocument
 
     companion object {
-        private val mongo = MongoDBContainer("mongo:5.0.0")
 
         @JvmStatic
         @Container
@@ -60,7 +56,7 @@ internal class MongoDatabaseContainerTest {
         )
             .withEnv("MONGO_INITDB_ROOT_USERNAME", "USERNAME")
             .withEnv("MONGO_INITDB_ROOT_PASSWORD", "PASSWORD")
-            .withEnv("MONGO_INITDB_DATABASE", "TEST_DATABASE")
+//            .withEnv("MONGO_INITDB_DATABASE", "TEST_DATABASE")
             .withExposedPorts(27017)
             .waitingFor(Wait.forLogMessage("(?i).*Waiting for connections*.*", 1))
 
