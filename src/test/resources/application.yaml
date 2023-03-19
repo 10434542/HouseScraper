@@ -4,12 +4,6 @@ funda:
 pararius:
   url: https://www.pararius.nl
 
-de:
-  flapdoodle:
-    mongodb:
-      embedded:
-        version: 4.4.16
-
 spring:
   data:
     mongodb:
