@@ -1,4 +1,4 @@
-package org.ray.housewebscraper.model.entities
+package org.ray.housewebscraper.model
 
 data class BuyHouseDTO(
     val zipCodeHouseNumber: ZipCodeHouseNumber,

@@ -1,9 +1,8 @@
-package org.ray.housewebscraper.persistance.repositories
+package org.ray.housewebscraper.persistence
 
 import com.mongodb.client.result.UpdateResult
 import kotlinx.coroutines.flow.Flow
-import org.ray.housewebscraper.model.entities.BuyHouseDocument
-import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
+import org.ray.housewebscraper.model.ZipCodeHouseNumber
 
 interface BuyHouseRepository {
     suspend fun insert(buyHouseDocument: BuyHouseDocument): BuyHouseDocument

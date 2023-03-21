@@ -1,4 +1,4 @@
-package org.ray.housewebscraper.funda
+package org.ray.housewebscraper.client
 
 import arrow.core.*
 import kotlinx.coroutines.*
@@ -7,10 +7,13 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.select.NodeTraversor
 import org.jsoup.select.NodeVisitor
-import org.ray.housewebscraper.funda.config.FundaConfigurationProperties
-import org.ray.housewebscraper.model.entities.BuyHouseDTO
-import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
-import org.ray.housewebscraper.model.interfaces.HouseWebClient
+import org.ray.housewebscraper.config.FundaConfigurationProperties
+import org.ray.housewebscraper.funda.findFirstHouseNumberIndex
+import org.ray.housewebscraper.funda.tryAwaitBodyOrElseEither
+import org.ray.housewebscraper.funda.zip
+import org.ray.housewebscraper.model.BuyHouseDTO
+import org.ray.housewebscraper.model.ZipCodeHouseNumber
+import org.ray.housewebscraper.model.HouseWebClient
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -19,7 +22,8 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Service
 @Qualifier("Funda")
-class FundaClientHouse(private val webClient: WebClient, private val configuration: FundaConfigurationProperties) : HouseWebClient {
+class FundaClientHouse(private val webClient: WebClient, private val configuration: FundaConfigurationProperties) :
+    HouseWebClient {
 
     override suspend fun getHousesByCityWithinRange(
         cityName: String,

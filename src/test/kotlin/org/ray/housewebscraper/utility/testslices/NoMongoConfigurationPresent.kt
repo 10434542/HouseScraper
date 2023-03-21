@@ -3,7 +3,7 @@ package org.ray.housewebscraper.utility.testslices
 import com.mongodb.reactivestreams.client.MongoClient
 import com.ninjasquad.springmockk.MockkBean
 import org.ray.housewebscraper.HouseWebScraperSpringApplication
-import org.ray.housewebscraper.persistance.configuration.MongoConfiguration
+import org.ray.housewebscraper.config.MongoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration

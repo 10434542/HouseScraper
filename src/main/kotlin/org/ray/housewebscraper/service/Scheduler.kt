@@ -1,9 +1,9 @@
-package org.ray.housewebscraper.services
+package org.ray.housewebscraper.service
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import org.ray.housewebscraper.model.interfaces.HouseWebClient
+import org.ray.housewebscraper.model.HouseWebClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service

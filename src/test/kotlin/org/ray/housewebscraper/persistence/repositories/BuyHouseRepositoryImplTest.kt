@@ -1,4 +1,4 @@
-package org.ray.housewebscraper.persistance.repositories
+package org.ray.housewebscraper.persistence.repositories
 
 import com.mongodb.client.result.UpdateResult
 import io.mockk.*
@@ -12,8 +12,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.ray.housewebscraper.model.entities.BuyHouseDocument
-import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
+import org.ray.housewebscraper.persistence.BuyHouseDocument
+import org.ray.housewebscraper.model.ZipCodeHouseNumber
+import org.ray.housewebscraper.persistence.BuyHouseRepository
+import org.ray.housewebscraper.persistence.BuyHouseRepositoryImpl
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import reactor.core.publisher.Mono
 

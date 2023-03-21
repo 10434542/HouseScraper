@@ -1,9 +1,7 @@
-package org.ray.housewebscraper.persistance.configuration
+package org.ray.housewebscraper.config
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.convert.MappingMongoConverter
 import reactor.util.Loggers
 
 

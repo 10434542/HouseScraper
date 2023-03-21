@@ -1,6 +1,5 @@
 package org.ray.housewebscraper
 
-import arrow.core.Either
 import com.nimbusds.oauth2.sdk.util.StringUtils.isAlpha
 import com.nimbusds.oauth2.sdk.util.StringUtils.isNumeric
 import kotlinx.coroutines.async
@@ -11,8 +10,8 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.NodeTraversor
 import org.junit.jupiter.api.Test
-import org.ray.housewebscraper.model.entities.BuyHouseDTO
-import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
+import org.ray.housewebscraper.model.BuyHouseDTO
+import org.ray.housewebscraper.model.ZipCodeHouseNumber
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.http.codec.ClientCodecConfigurer
@@ -21,7 +20,6 @@ import org.springframework.util.MimeTypeUtils
 import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
-import org.springframework.web.reactive.function.client.awaitBodyOrNull
 import reactor.netty.http.client.HttpClient
 
 

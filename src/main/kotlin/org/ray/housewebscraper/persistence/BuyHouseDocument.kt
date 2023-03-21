@@ -1,5 +1,6 @@
-package org.ray.housewebscraper.model.entities
+package org.ray.housewebscraper.persistence
 
+import org.ray.housewebscraper.model.ZipCodeHouseNumber
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 

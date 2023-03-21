@@ -1,4 +1,4 @@
-package org.ray.housewebscraper.persistance.repositories
+package org.ray.housewebscraper.persistence.repositories
 
 import io.mockk.mockkStatic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -9,8 +9,9 @@ import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.ray.housewebscraper.model.entities.BuyHouseDocument
-import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
+import org.ray.housewebscraper.persistence.BuyHouseDocument
+import org.ray.housewebscraper.model.ZipCodeHouseNumber
+import org.ray.housewebscraper.persistence.BuyHouseRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -21,7 +22,6 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers

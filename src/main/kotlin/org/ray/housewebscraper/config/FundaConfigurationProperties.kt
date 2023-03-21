@@ -1,4 +1,4 @@
-package org.ray.housewebscraper.funda.config
+package org.ray.housewebscraper.config
 
 import jakarta.validation.constraints.NotEmpty
 import org.springframework.boot.context.properties.ConfigurationProperties

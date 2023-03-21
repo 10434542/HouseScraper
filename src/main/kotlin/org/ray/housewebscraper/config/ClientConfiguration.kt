@@ -1,4 +1,4 @@
-package org.ray.housewebscraper.funda.config
+package org.ray.housewebscraper.config
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean

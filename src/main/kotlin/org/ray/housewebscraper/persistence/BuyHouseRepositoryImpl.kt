@@ -1,4 +1,4 @@
-package org.ray.housewebscraper.persistance.repositories
+package org.ray.housewebscraper.persistence
 
 import com.mongodb.client.result.UpdateResult
 import kotlinx.coroutines.Dispatchers
@@ -7,8 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.withContext
-import org.ray.housewebscraper.model.entities.BuyHouseDocument
-import org.ray.housewebscraper.model.entities.ZipCodeHouseNumber
+import org.ray.housewebscraper.model.ZipCodeHouseNumber
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
