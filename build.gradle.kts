@@ -36,7 +36,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    implementation("org.jsoup:jsoup:1.15.3")
+    implementation("org.jsoup:jsoup:1.15.4")
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
