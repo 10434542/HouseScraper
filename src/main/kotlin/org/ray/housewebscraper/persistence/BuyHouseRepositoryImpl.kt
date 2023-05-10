@@ -42,4 +42,11 @@ class BuyHouseRepositoryImpl(
         val update = Update().set("price", price)
         return mongoTemplate.updateFirst(query, update, BuyHouseDocument::class.java).awaitSingle()
     }
+
+    override suspend fun getBuyHousesInPriceRange(minimum: String, maximum: String): List<BuyHouseDocument> {
+        val query =  Query.query(
+            Criteria.where("price").gte(minimum).lte(maximum)
+        )
+        return mongoTemplate.find(query, BuyHouseDocument::class.java).collectList().awaitSingle()
+    }
 }

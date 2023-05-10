@@ -12,4 +12,6 @@ interface BuyHouseRepository {
     suspend fun getBuyHousesByCity(city: String): Flow<BuyHouseDocument>
 
     suspend fun updateHousePriceById(postalCode: String, houseNumber: String, price: String): UpdateResult
+
+    suspend fun getBuyHousesInPriceRange(minimum: String, maximum: String): List<BuyHouseDocument>
 }
