@@ -81,6 +81,13 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+kapt {
+    arguments {
+        arg("mapstruct.unmappedTargetPolicy", "ignore")
+    }
+    keepJavacAnnotationProcessors = true
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
