@@ -9,8 +9,8 @@ import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.ray.housewebscraper.persistence.BuyHouseDocument
 import org.ray.housewebscraper.model.ZipCodeHouseNumber
+import org.ray.housewebscraper.persistence.BuyHouseDocument
 import org.ray.housewebscraper.persistence.BuyHouseRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -71,7 +71,6 @@ internal class MongoDatabaseContainerTest {
 
         @BeforeAll
         fun setup() {
-
             MONGO_DB_CONTAINER.start()
         }
 
@@ -81,7 +80,6 @@ internal class MongoDatabaseContainerTest {
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeEach
     fun setUp() {
         runBlocking {
@@ -127,6 +125,6 @@ internal class MongoDatabaseContainerTest {
         runTest {
             val mutation = repository.updateHousePriceById("1010NU", "66", "150000")
             val result = repository.getBuyHouseById(ZipCodeHouseNumber("1010NU", "66"))
-            assertThat(result.price).isEqualTo("150000")
+            assertThat(result?.price).isEqualTo("150000")
         }
 }

@@ -4,12 +4,15 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.ray.housewebscraper.model.HouseWebClient
-import org.springframework.beans.factory.annotation.Autowired
+import org.ray.housewebscraper.persistence.BuyHouseRepository
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
-class Scheduler(@Autowired val webClients: List<HouseWebClient>) {
+class Scheduler(
+    private val webClients: List<HouseWebClient>,
+    private val buyHouseRepository: BuyHouseRepository
+) {
 
     @Scheduled(fixedDelayString = "PT1M", initialDelayString = "PT5S")
     suspend fun getLatestHousesByCity() {

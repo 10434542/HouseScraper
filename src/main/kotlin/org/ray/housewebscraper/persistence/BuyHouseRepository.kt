@@ -7,6 +7,8 @@ import org.ray.housewebscraper.model.ZipCodeHouseNumber
 interface BuyHouseRepository {
     suspend fun insert(buyHouseDocument: BuyHouseDocument): BuyHouseDocument
 
+    suspend fun insertAll(buyHouseDocuments: List<BuyHouseDocument>): Flow<BuyHouseDocument>
+
     suspend fun getBuyHouseById(id: ZipCodeHouseNumber): BuyHouseDocument
 
     suspend fun getBuyHousesByCity(city: String): Flow<BuyHouseDocument>

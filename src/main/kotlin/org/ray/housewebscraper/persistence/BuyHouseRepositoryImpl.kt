@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitLast
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.withContext
 import org.ray.housewebscraper.model.ZipCodeHouseNumber
@@ -20,6 +21,10 @@ class BuyHouseRepositoryImpl(
 ) : BuyHouseRepository {
     override suspend fun insert(buyHouseDocument: BuyHouseDocument): BuyHouseDocument {
         return mongoTemplate.insert(buyHouseDocument).awaitSingle()
+    }
+
+    override suspend fun insertAll(buyHouseDocuments: List<BuyHouseDocument>): Flow<BuyHouseDocument> {
+        return mongoTemplate.insertAll(buyHouseDocuments.toMutableList()).asFlow()
     }
 
     override suspend fun getBuyHouseById(id: ZipCodeHouseNumber): BuyHouseDocument {

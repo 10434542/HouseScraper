@@ -4,16 +4,18 @@ import com.mongodb.client.result.UpdateResult
 import io.mockk.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.bson.BsonDocument
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.ray.housewebscraper.persistence.BuyHouseDocument
 import org.ray.housewebscraper.model.ZipCodeHouseNumber
+import org.ray.housewebscraper.persistence.BuyHouseDocument
 import org.ray.housewebscraper.persistence.BuyHouseRepository
 import org.ray.housewebscraper.persistence.BuyHouseRepositoryImpl
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -102,4 +104,13 @@ class BuyHouseRepositoryImplTest {
             assertEquals(updateResult, result)
         }
     }
+
+    @Test
+    fun `given a list of buyHouseDocuments, when save all then expect a flow containing those documents`(): Unit =
+        runBlocking {
+            coEvery { val buyHouseDocuments = mutableListOf(mockBuyHouseDocument)
+                mockTemplate.insertAll(buyHouseDocuments).asFlow() } returns flowOf(mockBuyHouseDocument)
+            val result = repository.insertAll(listOf(mockBuyHouseDocument)).toList()
+            assertThat(result).contains(mockBuyHouseDocument)
+        }
 }

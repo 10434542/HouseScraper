@@ -63,6 +63,9 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:1.17.6")
     testImplementation("org.testcontainers:mongodb:1.17.6")
 
+    implementation("org.springdoc:springdoc-openapi-webflux-ui:1.7.0")
+    runtimeOnly("org.springdoc:springdoc-openapi-kotlin:1.7.0")
+
 
     // arrow
     implementation("io.arrow-kt:arrow-core:1.1.5")

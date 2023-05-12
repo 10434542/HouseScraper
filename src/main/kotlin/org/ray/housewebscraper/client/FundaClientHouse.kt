@@ -32,7 +32,8 @@ class FundaClientHouse(private val webClient: WebClient, private val configurati
         pages: Int,
     ): Either<Throwable, List<BuyHouseDTO>> {
         val returnValue = coroutineScope {
-            val url = "${configuration.url}/koop/$cityName/$minimum-$maximum"
+            val koopUrl = "${configuration.url}/koop/"
+            val url = koopUrl.plus("$cityName/$minimum-$maximum")
             val result = webClient.get()
                 .uri(url)
                 .accept(MediaType.APPLICATION_XML)
@@ -85,7 +86,7 @@ class FundaClientHouse(private val webClient: WebClient, private val configurati
                                                 zipCodeList.add(zipCode)
                                                 cityList.add(city)
                                                 val href = node.parent()?.attr("href")
-                                                linkList.add(href!!)
+                                                linkList.add(koopUrl.plus(href!!))
                                             }
                                             "search-result__header-title fd-m-none" -> {
                                                 val values = text.split(" ")

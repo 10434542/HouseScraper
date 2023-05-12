@@ -1,4 +1,4 @@
-package org.ray.housewebscraper.services
+package org.ray.housewebscraper.service
 
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
