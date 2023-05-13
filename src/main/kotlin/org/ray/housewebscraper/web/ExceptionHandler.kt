@@ -9,6 +9,6 @@ class ExceptionHandler {
 
     @ExceptionHandler(NoSuchElementException::class)
     suspend fun handleException(ex: NoSuchElementException): ResponseEntity<Any> {
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.notFound().build()
     }
 }
