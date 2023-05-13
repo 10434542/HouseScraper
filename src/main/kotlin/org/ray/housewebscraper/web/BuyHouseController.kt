@@ -26,9 +26,8 @@ class BuyHouseController(private val buyHouseService: HouseService) {
     suspend fun getByAdress(
         @RequestParam(name = "zipCode", required = true) zipCode: String,
         @RequestParam(name = "houseNumber", required = true) houseNumber: String,
-    ): ResponseEntity<BuyHouseDTO?> {
+    ): ResponseEntity<BuyHouseDTO> {
         val byZipCodeHouseNumber = buyHouseService.getByZipCodeHouseNumber(zipCode, houseNumber)
-            ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(byZipCodeHouseNumber)
     }
 }
