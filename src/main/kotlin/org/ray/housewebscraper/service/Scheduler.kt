@@ -1,27 +1,20 @@
 package org.ray.housewebscraper.service
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import org.ray.housewebscraper.model.HouseWebClient
+import org.ray.housewebscraper.mapper.BuyHouseDTODocumentMapper
 import org.ray.housewebscraper.persistence.BuyHouseRepository
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
 class Scheduler(
-    private val webClients: List<HouseWebClient>,
-    private val buyHouseRepository: BuyHouseRepository
+    private val buyHouseRepository: BuyHouseRepository,
+    private val buyHouseDTODocumentMapper: BuyHouseDTODocumentMapper,
+    private val scraperService: ScraperService,
 ) {
 
-    @Scheduled(fixedDelayString = "PT1M", initialDelayString = "PT5S")
+    @Scheduled(fixedDelayString = "PT15M", initialDelayString = "PT5S")
     suspend fun getLatestHousesByCity() {
-        val result = coroutineScope {
-            webClients.map {
-                async {
-                    it.getHousesByCityWithinRange("Haarlem", 0, 300000, 1)
-                }
-            }
-        }.awaitAll()
+        val result = scraperService.scrapeHousesForCityInRange("Haarlem", 0, 300000, 1)
+        buyHouseRepository.insertAll(result.map(buyHouseDTODocumentMapper::toDocument))
     }
 }
