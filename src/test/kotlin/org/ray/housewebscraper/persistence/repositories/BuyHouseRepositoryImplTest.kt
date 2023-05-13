@@ -19,7 +19,9 @@ import org.ray.housewebscraper.persistence.BuyHouseDocument
 import org.ray.housewebscraper.persistence.BuyHouseRepository
 import org.ray.housewebscraper.persistence.BuyHouseRepositoryImpl
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.util.stream.Stream
 
 class BuyHouseRepositoryImplTest {
     private val mockTemplate = mockk<ReactiveMongoTemplate>(relaxed = true) // fixed it
@@ -100,7 +102,7 @@ class BuyHouseRepositoryImplTest {
             every { mockTemplate.updateFirst(any(), any(), any<Class<*>>()) } returns Mono.just(updateResult)
             coEvery { any<Mono<UpdateResult>>().awaitSingle() } returns updateResult
 
-            val result = repository.updateHousePriceById("1010NU", "66", "1000000");
+            val result = repository.updateHousePriceById("1010NU", "66", "1000000")
             assertEquals(updateResult, result)
         }
     }
@@ -109,7 +111,7 @@ class BuyHouseRepositoryImplTest {
     fun `given a list of buyHouseDocuments, when save all then expect a flow containing those documents`(): Unit =
         runBlocking {
             coEvery { val buyHouseDocuments = mutableListOf(mockBuyHouseDocument)
-                mockTemplate.insertAll(buyHouseDocuments).asFlow() } returns flowOf(mockBuyHouseDocument)
+                mockTemplate.insertAll(buyHouseDocuments) } returns Flux.fromStream(Stream.of(mockBuyHouseDocument))
             val result = repository.insertAll(listOf(mockBuyHouseDocument)).toList()
             assertThat(result).contains(mockBuyHouseDocument)
         }
