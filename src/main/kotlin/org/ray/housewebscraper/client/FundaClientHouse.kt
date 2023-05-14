@@ -8,9 +8,9 @@ import org.jsoup.nodes.Node
 import org.jsoup.select.NodeTraversor
 import org.jsoup.select.NodeVisitor
 import org.ray.housewebscraper.config.FundaConfigurationProperties
-import org.ray.housewebscraper.funda.findFirstHouseNumberIndex
-import org.ray.housewebscraper.funda.tryAwaitBodyOrElseEither
-import org.ray.housewebscraper.funda.zip
+import org.ray.housewebscraper.util.findFirstHouseNumberIndex
+import org.ray.housewebscraper.util.tryAwaitBodyOrElseEither
+import org.ray.housewebscraper.util.zip
 import org.ray.housewebscraper.model.BuyHouseDTO
 import org.ray.housewebscraper.model.ZipCodeHouseNumber
 import org.ray.housewebscraper.model.HouseWebClient

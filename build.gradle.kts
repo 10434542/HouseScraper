@@ -29,8 +29,9 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    // uncomment this later, when the oauth2 PKCE flow will be implemented
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-security")
+//    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
 
     implementation("org.springframework.boot:spring-boot-starter-webflux")

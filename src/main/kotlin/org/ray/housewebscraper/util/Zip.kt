@@ -1,7 +1,7 @@
-package org.ray.housewebscraper.funda
+package org.ray.housewebscraper.util
 
 import arrow.core.Either
-import com.nimbusds.oauth2.sdk.util.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 
