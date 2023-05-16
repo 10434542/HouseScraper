@@ -11,9 +11,10 @@ import org.ray.housewebscraper.service.HouseService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf
 import org.springframework.test.web.reactive.server.WebTestClient
 
-@WebFluxTest(TriggerController::class, excludeAutoConfiguration = [ReactiveSecurityAutoConfiguration::class])
+@WebFluxTest(BuyHouseController::class, excludeAutoConfiguration = [ReactiveSecurityAutoConfiguration::class])
 internal class BuyHouseControllerTest {
 
     @Autowired
@@ -24,22 +25,37 @@ internal class BuyHouseControllerTest {
 
     private val buyHouseDTO: BuyHouseDTO = BuyHouseDTO(
         ZipCodeHouseNumber("6969TT", "69"),
-        "blazeItStreet",
-        city = "Rome",
-        price = "420",
-        surface = "420m2",
+        "suk_a_kok_street",
+        city = "OldMan",
+        price = "69",
+        surface = "69m2",
         numberOfRooms = "69",
-        link = "google.com"
+        link = "no_money.com"
     )
 
     @Test
-    fun `given some buyhouse for Rome, when getByCity, then expect buyHouseDTO`(): Unit = runBlocking {
-        coEvery { service.getHousesByCity("Rome") } returns flowOf(buyHouseDTO)
-        val result = webClient.get()
-            .uri { uri -> uri.path("/api/houses/{city}") }
+    fun `given some buyhouse for OldMan, when getByCity, then expect buyHouseDTO`(): Unit = runBlocking {
+        coEvery { service.getHousesByCity("OldMan") } returns flowOf(buyHouseDTO)
+        val result = webClient.mutateWith(csrf()).get()
+            .uri { uri ->
+                uri.path("/api/houses/buyhouses/{city}").build("OldMan")
+            }.exchange()
+            .expectStatus()
+            .isOk
     }
 
     @Test
-    fun getByAdress() {
-    }
+    fun `given some buyhouse for some zip code and housenumber, when getByAdress, then expect buyHouseDTO`(): Unit =
+        runBlocking {
+            coEvery { service.getByZipCodeHouseNumber("6969TT", "69") } returns buyHouseDTO
+            val result = webClient.get()
+                .uri { uri ->
+                    uri.path("/api/houses/buyhouses")
+                        .queryParam("zipCode", "6969TT")
+                        .queryParam("houseNumber", "69")
+                        .build()
+                }.exchange()
+                .expectStatus()
+                .isOk
+        }
 }
