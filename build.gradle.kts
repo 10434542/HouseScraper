@@ -5,6 +5,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.0"
     kotlin("jvm") version "1.7.22"
     kotlin("plugin.spring") version "1.7.22"
+    kotlin("kapt") version "1.3.72"
 }
 
 group = "org.ray"
@@ -24,10 +25,13 @@ repositories {
 extra["springCloudVersion"] = "2022.0.0"
 
 dependencies {
+//    implementation("org.mapstruct:mapstruct-jdk8:1.5.3.Final")
+
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    // uncomment this later, when the oauth2 PKCE flow will be implemented
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-security")
+//    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
 
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -41,6 +45,11 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.mapstruct:mapstruct:1.5.3.Final")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
+    kapt("org.mapstruct:mapstruct-processor:1.5.3.Final")
+
+
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "mockito-core")
     }
@@ -54,6 +63,9 @@ dependencies {
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock:4.0.2")
     testImplementation("org.testcontainers:junit-jupiter:1.17.6")
     testImplementation("org.testcontainers:mongodb:1.17.6")
+
+    implementation("org.springdoc:springdoc-openapi-webflux-ui:1.7.0")
+    runtimeOnly("org.springdoc:springdoc-openapi-kotlin:1.7.0")
 
 
     // arrow
@@ -71,6 +83,13 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "17"
     }
+}
+
+kapt {
+    arguments {
+        arg("mapstruct.unmappedTargetPolicy", "ignore")
+    }
+    keepJavacAnnotationProcessors = true
 }
 
 tasks.withType<Test> {

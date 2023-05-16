@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.ray.housewebscraper.HouseWebScraperSpringApplication
 import org.ray.housewebscraper.configuration.WireMockContextInitializer
-import org.ray.housewebscraper.model.interfaces.HouseWebClient
+import org.ray.housewebscraper.model.HouseWebClient
 import org.ray.housewebscraper.utility.testslices.NoMongoConfigurationPresent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
