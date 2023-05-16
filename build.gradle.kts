@@ -62,7 +62,7 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:4.0.2")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock:4.0.2")
     testImplementation("org.testcontainers:junit-jupiter:1.17.6")
-    testImplementation("org.testcontainers:mongodb:1.17.6")
+    testImplementation("org.testcontainers:mongodb:1.18.1")
 
     implementation("org.springdoc:springdoc-openapi-webflux-ui:1.7.0")
     runtimeOnly("org.springdoc:springdoc-openapi-kotlin:1.7.0")
