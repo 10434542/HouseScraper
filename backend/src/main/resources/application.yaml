@@ -1,0 +1,16 @@
+funda:
+  url: https://www.funda.nl/
+
+pararius:
+  url: https://www.pararius.nl
+
+spring:
+  data:
+    mongodb:
+      database: wew_lad
+      port: 27017
+      host: mongo_db
+      username: user
+      password: password
+server:
+  port: 9000
