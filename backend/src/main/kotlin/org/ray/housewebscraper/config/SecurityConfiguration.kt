@@ -20,7 +20,7 @@ class SecurityConfiguration {
                     .anyExchange().authenticated()
             }
             .httpBasic(withDefaults())
-            .formLogin(withDefaults());
-        return http.build();
+            .formLogin(withDefaults())
+        return http.build()
     }
 }
