@@ -12,5 +12,9 @@ spring:
       host: mongo_db
       username: user
       password: password
+  security:
+    user:
+      name: hank
+      password: hank
 server:
   port: 9000
