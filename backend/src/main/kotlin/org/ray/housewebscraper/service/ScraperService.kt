@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
-import lombok.extern.slf4j.Slf4j
 import org.ray.housewebscraper.mapper.BuyHouseDTODocumentMapper
 import org.ray.housewebscraper.model.BuyHouseDTO
 import org.ray.housewebscraper.model.HouseWebClient

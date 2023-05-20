@@ -2,9 +2,7 @@ package org.ray.housewebscraper.web
 
 import io.swagger.v3.oas.annotations.Operation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.subscribe
 import org.ray.housewebscraper.model.BuyHouseDTO
 import org.ray.housewebscraper.service.HouseService
 import org.springframework.http.ResponseEntity
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.*
 class BuyHouseController(private val buyHouseService: HouseService) {
 
 
-//    @GetMapping("/buyhouses/{city}", produces = ["application/stream+json"])
+    //    @GetMapping("/buyhouses/{city}", produces = ["application/stream+json"])
     @GetMapping("/buyhouses/{city}")
     @Operation(summary = "Get a collection of houses for sale by city")
     suspend fun getByCity(@PathVariable(name = "city") city: String): Flow<BuyHouseDTO> {

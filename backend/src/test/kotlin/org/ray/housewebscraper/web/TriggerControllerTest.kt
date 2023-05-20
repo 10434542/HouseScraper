@@ -1,7 +1,6 @@
 package org.ray.housewebscraper.web
 
 import com.ninjasquad.springmockk.MockkBean
-import io.mockk.coEvery
 import io.mockk.every
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
