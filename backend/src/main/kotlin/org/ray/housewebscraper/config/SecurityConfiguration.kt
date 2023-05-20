@@ -14,13 +14,14 @@ class SecurityConfiguration {
 
     @Bean
     fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
-        http.csrf().disable()
-            .authorizeExchange { exchanges ->
-                exchanges
-                    .anyExchange().authenticated()
-            }
-            .httpBasic(withDefaults())
-            .formLogin(withDefaults())
+        http.csrf().disable().authorizeExchange().anyExchange().permitAll()
+//        http.csrf().disable()
+//            .cors().disable()
+//            .authorizeExchange()
+//            .pathMatchers("/v3/api-docs/**","/swagger-resources/**",
+//                        "/webjars/**",
+//                        "/swagger-ui/**", "/swagger-ui/index.html").authenticated()
+//            .and().httpBasic(withDefaults()).formLogin(withDefaults())
         return http.build()
     }
 }

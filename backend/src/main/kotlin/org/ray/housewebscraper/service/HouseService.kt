@@ -15,7 +15,7 @@ class HouseService(
 ) {
 
 
-    suspend fun getHousesByCity(cityName: String): Flow<BuyHouseDTO> {
+    fun getHousesByCity(cityName: String): Flow<BuyHouseDTO> {
         return buyHouseRepository.getBuyHousesByCity(cityName).map(buyHouseDTODocumentMapper::toDTO)
     }
 

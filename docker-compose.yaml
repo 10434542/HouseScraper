@@ -2,17 +2,24 @@ version: "3.7"
 services:
   app:
     build:
-      context: /backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     restart: always
+    environment:
+      JAVA_OPTS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
       - mongo_db
     ports:
       - "9000:9000"
+      - "5005:5005"
   mongo_db:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=user
       - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=wew_lad
+      - MONGO_INITDB_USERNAME=user
+      - MONGO_INITDB_PASSWORD=password
     image: "mongo:5.0.0"
     restart: always
     ports:

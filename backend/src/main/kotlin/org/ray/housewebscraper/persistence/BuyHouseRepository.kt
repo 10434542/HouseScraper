@@ -7,11 +7,11 @@ import org.ray.housewebscraper.model.ZipCodeHouseNumber
 interface BuyHouseRepository {
     suspend fun insert(buyHouseDocument: BuyHouseDocument): BuyHouseDocument
 
-    suspend fun insertAll(buyHouseDocuments: List<BuyHouseDocument>): Flow<BuyHouseDocument>
+    fun insertAll(buyHouseDocuments: Collection<BuyHouseDocument>): Flow<BuyHouseDocument>
 
     suspend fun getBuyHouseById(id: ZipCodeHouseNumber): BuyHouseDocument
 
-    suspend fun getBuyHousesByCity(city: String): Flow<BuyHouseDocument>
+    fun getBuyHousesByCity(city: String): Flow<BuyHouseDocument>
 
     suspend fun updateHousePriceById(postalCode: String, houseNumber: String, price: String): UpdateResult
 

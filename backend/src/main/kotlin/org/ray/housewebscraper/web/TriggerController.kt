@@ -1,5 +1,6 @@
 package org.ray.housewebscraper.web
 
+import kotlinx.coroutines.flow.Flow
 import org.ray.housewebscraper.model.BuyHouseDTO
 import org.ray.housewebscraper.service.ScraperService
 import org.springframework.http.ResponseEntity
@@ -21,25 +22,21 @@ class TriggerController(
         @RequestParam(required = true) maximum: Long,
         @RequestParam(required = false) pages: Int?,
         @RequestParam(required = false, defaultValue = "false") save: Boolean,
-    ): ResponseEntity<List<BuyHouseDTO>> {
+    ): Flow<BuyHouseDTO> {
         if (save) {
-            return ResponseEntity.ok(
-                houseScraperService.scrapeHousesForCityInRangeAndSave(
+            return houseScraperService.scrapeHousesForCityInRangeAndSave(
                     cityName,
                     minimum ?: 0,
                     maximum,
                     pages ?: 1
-                )
+
             )
         }
-        return ResponseEntity.ok(
-            houseScraperService.scrapeHousesForCityInRange(
+        return houseScraperService.scrapeHousesForCityInRange(
                 cityName,
                 minimum ?: 0,
                 maximum,
                 pages ?: 1
             )
-        )
-
     }
 }

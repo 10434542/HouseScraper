@@ -12,6 +12,7 @@ spring:
       host: mongo_db
       username: user
       password: password
+      authentication-database: admin
   security:
     user:
       name: hank

@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
+    id("org.jetbrains.kotlin.plugin.lombok") version "1.8.21"
     kotlin("jvm") version "1.7.22"
     kotlin("plugin.spring") version "1.7.22"
     kotlin("kapt") version "1.3.72"
@@ -37,12 +38,16 @@ dependencies {
     implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlinx.coroutines.reactor)
     implementation(libs.jsoup)
+    implementation(libs.slf4j)
     implementation(libs.arrow.core)
     implementation(libs.spring.cloud.starter.gateway)
     implementation(libs.spring.cloud.starter.openfeign)
+    implementation(libs.logback)
     developmentOnly(libs.devtools)
     annotationProcessor(libs.spring.boot.configuration.processor)
     implementation(libs.mapstruct)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
     annotationProcessor(libs.mapstruct.processor)
     kapt(libs.mapstruct.processor)
 

@@ -46,7 +46,7 @@ dependencyResolutionManagement {
             library("starter-security", "org.springframework.boot", "spring-boot-starter-security").withoutVersion()
             library("starter-webflux", "org.springframework.boot", "spring-boot-starter-webflux").withoutVersion()
             library("jaxb-api", "javax.xml.bind", "jaxb-api").version("2.3.1")
-            library("springdoc-openapi-webflux-ui", "org.springdoc", "springdoc-openapi-webflux-ui").version("1.7.0")
+            library("springdoc-openapi-webflux-ui", "org.springdoc", "springdoc-openapi-starter-webflux-ui").version("2.1.0")
 
             library("jackson-module-kotlin", "com.fasterxml.jackson.module", "jackson-module-kotlin").withoutVersion()
             library(
@@ -84,6 +84,9 @@ dependencyResolutionManagement {
             library("springdoc-openapi-webflux", "org.springdoc", "springdoc-openapi-webflux-ui").version("1.7.0")
             library("springdoc-openapi-kotlin", "org.springdoc", "springdoc-openapi-kotlin").version("1.7.0")
             library("arrow-core", "io.arrow-kt", "arrow-core").version("1.1.5")
+            library("slf4j" ,"org.slf4j", "slf4j-api").version("2.0.7")
+            library("lombok", "org.projectlombok", "lombok").version("1.18.20")
+            library("logback", "ch.qos.logback","logback-core").version("1.4.7")
         }
     }
 
