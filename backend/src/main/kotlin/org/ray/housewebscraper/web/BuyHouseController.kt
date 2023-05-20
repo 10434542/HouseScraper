@@ -2,6 +2,7 @@ package org.ray.housewebscraper.web
 
 import io.swagger.v3.oas.annotations.Operation
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.ray.housewebscraper.model.BuyHouseDTO
 import org.ray.housewebscraper.service.HouseService
 import org.springframework.http.ResponseEntity
@@ -12,11 +13,11 @@ import org.springframework.web.bind.annotation.*
 class BuyHouseController(private val buyHouseService: HouseService) {
 
 
-    @GetMapping("/buyhouses/{city}", produces = ["application/stream+json"])
+    //    @GetMapping("/buyhouses/{city}", produces = ["application/stream+json"])
+    @GetMapping("/buyhouses/{city}")
     @Operation(summary = "Get a collection of houses for sale by city")
-    suspend fun getByCity(@PathVariable(name = "city") city: String): ResponseEntity<Flow<BuyHouseDTO>> {
-        val housesByCity = buyHouseService.getHousesByCity(city)
-        return ResponseEntity.ok(housesByCity)
+    suspend fun getByCity(@PathVariable(name = "city") city: String): Flow<BuyHouseDTO> {
+        return buyHouseService.getHousesByCity(city)
     }
 
     @GetMapping("/buyhouses")
@@ -27,5 +28,11 @@ class BuyHouseController(private val buyHouseService: HouseService) {
     ): ResponseEntity<BuyHouseDTO> {
         val byZipCodeHouseNumber = buyHouseService.getByZipCodeHouseNumber(zipCode, houseNumber)
         return ResponseEntity.ok(byZipCodeHouseNumber)
+    }
+
+    @GetMapping("/test")
+    @Operation(summary = "test for usage of kotlin flow")
+    fun getFlow(): Flow<Int> {
+        return flowOf(1, 2, 3, 4)
     }
 }

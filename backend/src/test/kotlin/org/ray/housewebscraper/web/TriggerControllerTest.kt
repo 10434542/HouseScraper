@@ -1,7 +1,8 @@
 package org.ray.housewebscraper.web
 
 import com.ninjasquad.springmockk.MockkBean
-import io.mockk.coEvery
+import io.mockk.every
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.ray.housewebscraper.model.BuyHouseDTO
@@ -46,7 +47,7 @@ internal class TriggerControllerTest {
 
     @Test
     fun `given some result from scraperService, when save is disabled then expect houseDtos`(): Unit = runBlocking {
-        coEvery { scraper.scrapeHousesForCityInRange("Rome", 0, 1000000, 1) } returns listOf(buyHouseDTO)
+        every { scraper.scrapeHousesForCityInRange("Rome", 0, 1000000, 1) } returns flowOf(buyHouseDTO)
         val result = webClient.mutateWith(csrf()).post().uri { uri ->
             uri.path("/api/houses/trigger/buyhouses")
                 .queryParam("cityName", "Rome")
@@ -63,7 +64,7 @@ internal class TriggerControllerTest {
     @Test
     fun `given some result from scraperService, whne save is enabledthne expect houseDtos and repository called`(): Unit =
         runBlocking {
-            coEvery { scraper.scrapeHousesForCityInRangeAndSave("Rome", 0, 1000000, 1) } returns listOf(buyHouseDTO)
+            every { scraper.scrapeHousesForCityInRangeAndSave("Rome", 0, 1000000, 1) } returns flowOf(buyHouseDTO)
 
             val result = webClient.mutateWith(csrf()).post().uri { uri ->
                 uri.path("/api/houses/trigger/buyhouses")
