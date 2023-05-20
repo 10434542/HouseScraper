@@ -5,7 +5,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -66,9 +65,9 @@ class ScraperServiceTest {
                 buyHouseDTO
             )
         }
-        every { repository.insertAll(listOf(buyHouseDocument))} returns flowOf(buyHouseDocument)
+        every { repository.insertAll(listOf(buyHouseDocument)) } returns flowOf(buyHouseDocument)
         every { mapper.toDocument(buyHouseDTO) } returns buyHouseDocument
-        every { mapper.toDTO(buyHouseDocument )} returns buyHouseDTO
+        every { mapper.toDTO(buyHouseDocument) } returns buyHouseDTO
         val result = service.scrapeHousesForCityInRangeAndSave("Rome", 0, 1000000, 1).toList()
         coVerify { repository.insertAll(listOf(buyHouseDocument)) }
         assertThat(result).contains(buyHouseDTO)
