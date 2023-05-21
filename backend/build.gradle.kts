@@ -6,7 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.lombok") version "1.8.21"
     kotlin("jvm") version "1.7.22"
     kotlin("plugin.spring") version "1.7.22"
-    kotlin("kapt") version "1.3.72"
+    kotlin("kapt") version "1.8.21"
 }
 
 group = "org.ray"
