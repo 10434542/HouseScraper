@@ -13,10 +13,10 @@ class Scheduler(
 
     @Scheduled(fixedDelayString = "PT1M", initialDelayString = "PT5S")
     fun getLatestHousesByCity() {
-        runBlocking {
-            scraperService.scrapeHousesForCityInRangeAndSave("Haarlem", 0, 300000, 1)
-                .onEach { println("found $it") }
-                .collect()
-        }
+//        runBlocking {
+//            scraperService.scrapeHousesForCityInRangeAndSave("Haarlem", 0, 300000, 1)
+//                .onEach { println("found $it") }
+//                .collect()
+//        }
     }
 }

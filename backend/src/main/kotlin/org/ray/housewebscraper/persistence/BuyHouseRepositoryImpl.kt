@@ -2,14 +2,19 @@ package org.ray.housewebscraper.persistence
 
 import com.mongodb.client.result.UpdateResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import org.ray.housewebscraper.model.ZipCodeHouseNumber
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Repository
+
+private val logger = KotlinLogging.logger { }
 
 @Repository
 class BuyHouseRepositoryImpl(
@@ -24,6 +29,35 @@ class BuyHouseRepositoryImpl(
             .asFlow() // maybe subscribe and make it fun (not suspend fun)
     }
 
+    /**
+     * Insert if exists
+     *
+     * @param buyHouseDocuments
+     * @return [Flow] of [BuyHouseDocument]
+     */
+    fun insertIfExists(buyHouseDocuments: Collection<BuyHouseDocument>): Flow<BuyHouseDocument> {
+        val criteriaBase = Criteria()
+
+        buyHouseDocuments.forEach {
+            criteriaBase.orOperator(Criteria
+                .where("zipCodeHouseNumber.zipCode").`is`(it.zipCodeHouseNumber.zipCode)
+                .and("zipCodeHouseNumber.houseNumber").`is`(it.zipCodeHouseNumber.houseNumber))
+        }
+
+        val existingDocs = runBlocking {
+            mongoTemplate.find(Query().addCriteria(criteriaBase), BuyHouseDocument::class.java)
+                .asFlow()
+                .toList()
+                .filterNotNull()
+        }
+
+        val docsToSave = buyHouseDocuments.filter {
+            existingDocs.contains(it)
+        }
+
+        return mongoTemplate.insertAll(docsToSave).asFlow()
+    }
+
     override suspend fun getBuyHouseById(id: ZipCodeHouseNumber): BuyHouseDocument {
         return mongoTemplate.findById(id, BuyHouseDocument::class.java).doOnSuccess { }.awaitSingle()
     }
@@ -33,6 +67,14 @@ class BuyHouseRepositoryImpl(
             .asFlow()
     }
 
+    /**
+     * Update house price by id
+     *
+     * @param postalCode
+     * @param houseNumber
+     * @param price
+     * @return [UpdateResult]
+     */
     override suspend fun updateHousePriceById(postalCode: String, houseNumber: String, price: String): UpdateResult {
         val query = Query.query(
             Criteria

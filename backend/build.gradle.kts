@@ -46,6 +46,7 @@ dependencies {
     developmentOnly(libs.devtools)
     annotationProcessor(libs.spring.boot.configuration.processor)
     implementation(libs.mapstruct)
+    implementation(libs.kotlin.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     annotationProcessor(libs.mapstruct.processor)

@@ -87,6 +87,7 @@ dependencyResolutionManagement {
             library("slf4j" ,"org.slf4j", "slf4j-api").version("2.0.7")
             library("lombok", "org.projectlombok", "lombok").version("1.18.20")
             library("logback", "ch.qos.logback","logback-core").version("1.4.7")
+            library("kotlin-logging", "io.github.microutils", "kotlin-logging-jvm").version("3.0.5")
         }
     }
 

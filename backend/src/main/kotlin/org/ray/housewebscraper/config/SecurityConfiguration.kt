@@ -17,9 +17,9 @@ class SecurityConfiguration {
         http.csrf().disable()
             .cors().disable()
             .authorizeExchange()
-//            .pathMatchers("/v3/api-docs/**","/swagger-resources/**",
-//                        "/webjars/**",
-//                        "/swagger-ui/**", "/swagger-ui/index.html").authenticated()
+////            .pathMatchers("/v3/api-docs/**","/swagger-resources/**",
+////                        "/webjars/**",
+////                        "/swagger-ui/**", "/swagger-ui/index.html").authenticated()
             .anyExchange().authenticated()
             .and().httpBasic(withDefaults()).formLogin(withDefaults())
         return http.build()
