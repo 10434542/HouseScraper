@@ -3,6 +3,7 @@ package org.ray.housewebscraper.persistence.repositories
 import com.mongodb.client.result.UpdateResult
 import io.mockk.*
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -19,6 +20,8 @@ import org.ray.housewebscraper.persistence.BuyHouseDocument
 import org.ray.housewebscraper.persistence.BuyHouseRepository
 import org.ray.housewebscraper.persistence.BuyHouseRepositoryImpl
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.stream.Stream
@@ -110,9 +113,43 @@ class BuyHouseRepositoryImplTest {
     @Test
     fun `given a list of buyHouseDocuments, when save all then expect a flow containing those documents`(): Unit =
         runBlocking {
-            coEvery { val buyHouseDocuments = mutableListOf(mockBuyHouseDocument)
-                mockTemplate.insertAll(buyHouseDocuments) } returns Flux.fromStream(Stream.of(mockBuyHouseDocument))
+            coEvery {
+                val buyHouseDocuments = mutableListOf(mockBuyHouseDocument)
+                mockTemplate.insertAll(buyHouseDocuments)
+            } returns Flux.fromStream(Stream.of(mockBuyHouseDocument))
             val result = repository.insertAll(listOf(mockBuyHouseDocument)).toList()
             assertThat(result).contains(mockBuyHouseDocument)
         }
+
+    @Test
+    fun `given no existing documents in the database, when insertAllIfNotExists, then expect all documents to be saved`(): Unit {
+        every {
+            mockTemplate.find(
+                Query().addCriteria(
+                    Criteria.where("zipCodeHouseNumber").`in`(mockBuyHouseDocument.zipCodeHouseNumber)
+                ), BuyHouseDocument::class.java
+            )
+        } returns Flux.just()
+
+        every { mockTemplate.insertAll(any<List<BuyHouseDocument>>()) } returns Flux.just(mockBuyHouseDocument)
+
+        val result = runBlocking { repository.insertAllIfNotExists(mutableListOf(mockBuyHouseDocument)).toList() }
+        assertThat(result).contains(mockBuyHouseDocument)
+    }
+
+    @Test
+    fun `given existing documents in the database, when insertAllIfNotExists, then expect no documents saved`(): Unit {
+        every {
+            mockTemplate.find(
+                Query().addCriteria(
+                    Criteria.where("zipCodeHouseNumber").`in`(mockBuyHouseDocument.zipCodeHouseNumber)
+                ), BuyHouseDocument::class.java
+            )
+        } returns Flux.just(mockBuyHouseDocument)
+
+        every { mockTemplate.insertAll(any<List<BuyHouseDocument>>()) } returns Flux.just()
+
+        val result = runBlocking { repository.insertAllIfNotExists(mutableListOf(mockBuyHouseDocument)).toList() }
+        assertThat(result).isEmpty()
+    }
 }

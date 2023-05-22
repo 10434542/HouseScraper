@@ -1,7 +1,10 @@
 package org.ray.housewebscraper.persistence
 
 import com.mongodb.client.result.UpdateResult
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
@@ -35,26 +38,20 @@ class BuyHouseRepositoryImpl(
      * @param buyHouseDocuments
      * @return [Flow] of [BuyHouseDocument]
      */
-    fun insertIfExists(buyHouseDocuments: Collection<BuyHouseDocument>): Flow<BuyHouseDocument> {
-        val criteriaBase = Criteria()
-
-        buyHouseDocuments.forEach {
-            criteriaBase.orOperator(Criteria
-                .where("zipCodeHouseNumber.zipCode").`is`(it.zipCodeHouseNumber.zipCode)
-                .and("zipCodeHouseNumber.houseNumber").`is`(it.zipCodeHouseNumber.houseNumber))
-        }
-
+    override fun insertAllIfNotExists(buyHouseDocuments: Collection<BuyHouseDocument>): Flow<BuyHouseDocument> {
+        val criteriaBase = Criteria.where("zipCodeHouseNumber").`in`(buyHouseDocuments.map { it.zipCodeHouseNumber })
         val existingDocs = runBlocking {
-            mongoTemplate.find(Query().addCriteria(criteriaBase), BuyHouseDocument::class.java)
-                .asFlow()
-                .toList()
-                .filterNotNull()
+            flow<BuyHouseDocument> {
+                coroutineScope {
+                    mongoTemplate.find(Query().addCriteria(criteriaBase), BuyHouseDocument::class.java)
+                        .asFlow()
+                        .filterNotNull()
+                }
+            }.toList()
         }
-
         val docsToSave = buyHouseDocuments.filter {
-            existingDocs.contains(it)
+            !existingDocs.contains(it)
         }
-
         return mongoTemplate.insertAll(docsToSave).asFlow()
     }
 
@@ -92,4 +89,5 @@ class BuyHouseRepositoryImpl(
         return mongoTemplate.find(query, BuyHouseDocument::class.java).collectList().awaitSingle()
     }
 }
+
 

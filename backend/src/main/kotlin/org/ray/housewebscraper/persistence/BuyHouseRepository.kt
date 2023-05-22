@@ -9,6 +9,8 @@ interface BuyHouseRepository {
 
     fun insertAll(buyHouseDocuments: Collection<BuyHouseDocument>): Flow<BuyHouseDocument>
 
+    fun insertAllIfNotExists(buyHouseDocuments: Collection<BuyHouseDocument>): Flow<BuyHouseDocument>
+
     suspend fun getBuyHouseById(id: ZipCodeHouseNumber): BuyHouseDocument
 
     fun getBuyHousesByCity(city: String): Flow<BuyHouseDocument>
