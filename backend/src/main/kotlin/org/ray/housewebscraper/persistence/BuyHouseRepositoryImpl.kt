@@ -2,10 +2,7 @@ package org.ray.housewebscraper.persistence
 
 import com.mongodb.client.result.UpdateResult
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -44,7 +41,7 @@ class BuyHouseRepositoryImpl(
                         .asFlow()
                         .filterNotNull()
                 }
-            }.toList()
+            }.toSet()
         }
         val docsToSave = buyHouseDocuments.filter {
             !existingDocs.contains(it)
