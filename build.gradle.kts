@@ -1,7 +1,7 @@
 
 plugins {
     kotlin("jvm") version "1.7.22"
-    kotlin("kapt") version "1.8.21"
+    kotlin("kapt") version "1.9.0"
 }
 
 group = "org.ray"
