@@ -1,6 +1,6 @@
 
 plugins {
-    kotlin("jvm") version "1.7.22"
+    kotlin("jvm") version "1.9.10"
     kotlin("kapt") version "1.8.21"
 }
 
