@@ -91,10 +91,11 @@ kapt {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    exclude("**/*ContainerTest*") // this is it
+    if (System.getProperties()["test.profile"] != "integration") {
+        exclude("**/*ContainerTest*") // this is it
+    }
 }
-
+//
 val integrationTestTask = tasks.register<Test>("integrationTest") {
     useJUnitPlatform()
-    include("*ContainerTest")
 }

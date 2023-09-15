@@ -62,7 +62,7 @@ class ScraperService(
                     buyHouseDTODocumentMapper.toDocument(it)
                 }.toList()
         }
-        return buyHouseRepository.insertAll(tempHouses)
+        return buyHouseRepository.insertAllIfNotExists(tempHouses)
             .map {
                 buyHouseDTODocumentMapper.toDTO(it)
             }.onEach {
