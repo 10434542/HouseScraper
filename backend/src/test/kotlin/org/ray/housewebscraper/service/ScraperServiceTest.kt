@@ -2,7 +2,6 @@ package org.ray.housewebscraper.service
 
 import arrow.core.Either
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
