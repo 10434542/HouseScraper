@@ -5,6 +5,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.select.Elements
 import org.jsoup.select.NodeTraversor
+import org.ray.housewebscraper.model.ZipCodeHouseNumber
 import org.ray.housewebscraper.persistence.BuyHouseDocument
 
 /*
@@ -29,7 +30,7 @@ fun main() {
     }
 
     val buyHouseDocuments = scraper.collect {
-        BuyHouseDocument(it[1], it[1], it[2], it[3], it[4], it[5], it[6], it[7])
+        BuyHouseDocument(ZipCodeHouseNumber(it[1], it[1]), it[2], it[3], it[4], it[5], it[6], it[7])
     }
 }
 
@@ -86,8 +87,11 @@ private fun Traversor.traverse() {
     }, root)
 }
 
-fun <T, V> Traversor.collect(block: (List<T>) -> V): List<V> {
-    val lists = containersFilterMap.values.map { it.toList() }.toTypedArray()
+fun <V> Traversor.collect(block: (List<String>) -> V): List<V> {
+    val lists = containersFilterMap.values.map { bla ->
+        bla.map {
+        it.toString()
+    }}.toTypedArray()
     return zip(*lists, transform = { block(it) })
 }
 
