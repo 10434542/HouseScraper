@@ -28,7 +28,9 @@ fun main() {
         // etc
     }
 
-    val buyHouseDocuments = scraper.collect {
+    val buyHouseDocuments = scraper
+        .traverse()
+        .collect {
         BuyHouseDocument(ZipCodeHouseNumber(it[1], it[1]), it[2], it[3], it[4], it[5], it[6], it[7])
     }
 }
@@ -80,7 +82,7 @@ fun TraversorBuilder.filter(block: FilterBuilder.() -> Unit) {
 }
 
 
-private fun Traversor.traverse() {
+private fun Traversor.traverse(): Traversor {
     NodeTraversor.traverse({ node: Node, _: Int ->
         node.attributes().forEach {
             val contains = attributeFilterMap.containsKey(it.toString())
@@ -91,6 +93,7 @@ private fun Traversor.traverse() {
             }
         }
     }, root)
+    return this
 }
 
 fun <V> Traversor.collect(block: (List<String>) -> V): List<V> {
