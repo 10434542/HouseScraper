@@ -24,7 +24,6 @@ fun main() {
             }
         }
         filter {
-
         }
         // etc
     }
@@ -34,12 +33,18 @@ fun main() {
     }
 }
 
+@DslMarker
+@Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS)
+annotation class ScraperDSL
+
+
 data class Traversor(
     val root: Elements,
     val attributeFilterMap: MutableMap<String, Filter> = mutableMapOf(),
     val containersFilterMap: MutableMap<Filter, MutableCollection<Any>> = mutableMapOf()
 )
 
+@ScraperDSL
 class TraversorBuilder {
     var root: Elements = Elements(1)
     var attributeFilterMap: MutableMap<String, Filter> = mutableMapOf()
@@ -53,6 +58,7 @@ data class Filter(
     val extractor: Element.() -> Any
 )
 
+@ScraperDSL
 class FilterBuilder {
     var cssAttribute = ""
     var container = mutableListOf<Any>()
@@ -90,8 +96,9 @@ private fun Traversor.traverse() {
 fun <V> Traversor.collect(block: (List<String>) -> V): List<V> {
     val lists = containersFilterMap.values.map { bla ->
         bla.map {
-        it.toString()
-    }}.toTypedArray()
+            it.toString()
+        }
+    }.toTypedArray()
     return zip(*lists, transform = { block(it) })
 }
 
