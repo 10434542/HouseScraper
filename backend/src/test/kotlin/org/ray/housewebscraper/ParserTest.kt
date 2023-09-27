@@ -3,7 +3,6 @@ package org.ray.housewebscraper
 import com.nimbusds.oauth2.sdk.util.StringUtils.isAlpha
 import com.nimbusds.oauth2.sdk.util.StringUtils.isNumeric
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -23,7 +22,7 @@ import org.springframework.web.reactive.function.client.awaitBody
 import reactor.netty.http.client.HttpClient
 
 
-private const val CITY = """amsterdam"""
+private const val CITY = """haarlem"""
 
 class ParserTest {
 
@@ -81,16 +80,52 @@ class ParserTest {
         )
 
         val result = webclient.get()
-            .uri("https://funda.nl/koop/$CITY/0-350000")
+            .uri("https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-1000000\"")
+//            .uri("https://funda.nl/koop/$CITY/0-350000")
             .accept(MediaType.APPLICATION_XML)
             .retrieve()
             .awaitBody<String>()
 
         // parse first result
         val document: Document = Jsoup.parse(result)
-        val regex = """^/koop/$CITY/[0-9]+-[0-9]+/p[0-9]+/$"""
-        val links = document.select("[href~=$regex]").not("[rel]")
-        val highestPage = links.map {
+//        println(document)
+//        val regex = """^/koop/$CITY/[0-9]+-[0-9]+/p[0-9]+/$"""
+//        val links = document.select("[href~=$regex]").not("[rel]")
+        val allElements = document.select("a")
+
+        // Filter the selected elements based on tabindex attribute
+        val maxPages = allElements.filter { element ->
+            element.attr("tabindex") == "0" && element.text().isNumeric()
+        }.maxOfOrNull {
+            it.text().toInt()
+        }
+        println("max number of pages found $maxPages")
+        val allLinks = generateSequence(1) { it + 1}.take(maxPages!!)
+            .map { "https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-1000000\"&search_result=$it" }//
+        val houseElements = document.select(".border-light-2.mb-4.border-b.pb-4:not([class*='md:border-b-0 md:pb-0'])")
+        println("amount of stuff found is ${houseElements.size}")
+        val houses = allLinks.take(4).toList().map {
+            async {
+                val streetList: MutableList<String> = mutableListOf()
+                val cityList: MutableList<String> = mutableListOf()
+                val houseNumberList: MutableList<String> = mutableListOf()
+                val zipCodeList: MutableList<String> = mutableListOf()
+                val squareMeterList: MutableList<String> = mutableListOf()
+                val priceList: MutableList<String> = mutableListOf()
+                val numberOfRoomsList: MutableList<String> = mutableListOf()
+                val linkList: MutableList<String> = mutableListOf()
+                val specificResult = webclient.get()
+                    .uri(it)
+                    .accept(MediaType.APPLICATION_XML)
+                    .retrieve()
+                    .awaitBody<String>()
+                val houseDocument: Document = Jsoup.parse(specificResult)
+                houseDocument.select()
+            }
+            NodeTraversor.traverse()
+            Document.select()
+
+           val highestPage = links.map {
             val tempList = it.attr("href").split("/")
             tempList[tempList.size - 2]
         }.last()
@@ -99,7 +134,7 @@ class ParserTest {
         val allLinks = generateSequence(1) { it + 1 }.take(
             highestPage.split("p").last().toInt()
         ).map { "https://funda.nl/koop/$CITY/0-350000/p$it" }
-        // search result media and search result promo add up to the total amount of ads per page, get them independently?
+         search result media and search result promo add up to the total amount of ads per page, get them independently?
         val houses = allLinks.take(4).toList().map {
             async {
                 val streetList: MutableList<String> = mutableListOf()
@@ -129,6 +164,7 @@ class ParserTest {
                         val text = node.text()
                         when (node.className()) {
                             "search-result__header-subtitle fd-m-none" -> {
+                                     handle zipCode street stuff
                                 val values = text.split(" ")
                                 city = values[values.size - 1]
                                 zipCode = values[0] + values[1]
@@ -161,7 +197,7 @@ class ParserTest {
                     }
 
                 }, children)
-                val housesPerPage = zip(
+                val housesPerPage = zip<String, BuyHouseDTO>(
                     streetList,
                     houseNumberList,
                     zipCodeList,
@@ -239,4 +275,7 @@ fun findFirstHouseNumberIndex(literal: List<String>): Int {
         println("$it + $what")
         what
     }.size
+}
+fun String.isNumeric(): Boolean {
+    return this.all { char -> char.isDigit() }
 }
