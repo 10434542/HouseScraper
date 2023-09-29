@@ -1,16 +1,20 @@
 package org.ray.housewebscraper
 
+import arrow.core.Either
+import arrow.core.getOrElse
 import com.nimbusds.oauth2.sdk.util.StringUtils.isAlpha
 import com.nimbusds.oauth2.sdk.util.StringUtils.isNumeric
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
-import org.jsoup.select.NodeTraversor
 import org.junit.jupiter.api.Test
 import org.ray.housewebscraper.model.BuyHouseDTO
 import org.ray.housewebscraper.model.ZipCodeHouseNumber
+import org.ray.housewebscraper.persistence.BuyHouseDocument
+import org.ray.housewebscraper.util.*
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.http.codec.ClientCodecConfigurer
@@ -78,178 +82,180 @@ class ParserTest {
             4500000,
             5000000
         )
+        val returnValue = coroutineScope {
+            val result = webclient.get()
+                .uri("https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-1000000\"")
+                .accept(MediaType.APPLICATION_XML)
+                .retrieve()
+                .awaitBody<String>()
 
-        val result = webclient.get()
-            .uri("https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-1000000\"")
-//            .uri("https://funda.nl/koop/$CITY/0-350000")
-            .accept(MediaType.APPLICATION_XML)
-            .retrieve()
-            .awaitBody<String>()
-
-        // parse first result
-        val document: Document = Jsoup.parse(result)
-//        println(document)
-//        val regex = """^/koop/$CITY/[0-9]+-[0-9]+/p[0-9]+/$"""
-//        val links = document.select("[href~=$regex]").not("[rel]")
-        val allElements = document.select("a")
-
-        // Filter the selected elements based on tabindex attribute
-        val maxPages = allElements.filter { element ->
-            element.attr("tabindex") == "0" && element.text().isNumeric()
-        }.maxOfOrNull {
-            it.text().toInt()
-        }
-        println("max number of pages found $maxPages")
-        val allLinks = generateSequence(1) { it + 1}.take(maxPages!!)
-            .map { "https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-1000000\"&search_result=$it" }//
-        val houseElements = document.select(".border-light-2.mb-4.border-b.pb-4:not([class*='md:border-b-0 md:pb-0'])")
-        println("amount of stuff found is ${houseElements.size}")
-        val houses = allLinks.take(4).toList().map {
-            async {
-                val streetList: MutableList<String> = mutableListOf()
-                val cityList: MutableList<String> = mutableListOf()
-                val houseNumberList: MutableList<String> = mutableListOf()
-                val zipCodeList: MutableList<String> = mutableListOf()
-                val squareMeterList: MutableList<String> = mutableListOf()
-                val priceList: MutableList<String> = mutableListOf()
-                val numberOfRoomsList: MutableList<String> = mutableListOf()
-                val linkList: MutableList<String> = mutableListOf()
-                val specificResult = webclient.get()
-                    .uri(it)
-                    .accept(MediaType.APPLICATION_XML)
-                    .retrieve()
-                    .awaitBody<String>()
-                val houseDocument: Document = Jsoup.parse(specificResult)
-                houseDocument.select()
+            // parse first result
+            val document = Jsoup.parse(result)
+            val allElements = document.select("a")
+            // Filter the selected elements based on tabindex attribute
+            val maxPages = allElements.filter { element ->
+                element.attr("tabindex") == "0" && element.text().isNumeric()
+            }.maxOfOrNull {
+                it.text().toInt()
             }
-            NodeTraversor.traverse()
-            Document.select()
+            val outcome = result.flatMap {str ->
+                val relevantHouses = generateSequence(1) { it + 1 }.take(maxPages!!)
+                    .map { "https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-1000000\"&search_result=$it" }
+                    .take(1).toList().map {
+                        async {
+                            val specificResult = webclient.get()
+                                .uri(it)
+                                .accept(MediaType.APPLICATION_XML)
+                                .retrieve()
+                                .tryAwaitBodyOrElseEither<String>()
+                                .map lit@{ something ->
+                                    val buyHouseDocuments = traversor {
+                                        root = Jsoup.parse(something).select("div.pt-4")
+                                        filter {
+                                            attribute {
+                                                cssAttributeKey = "data-test-id"
+                                                cssAttributeValue = "street-name-house-number"
+                                            }
+                                            extractor {
+                                                text()
+                                            }
+                                        }
+                                        filter {
+                                            attribute {
+                                                cssAttributeKey = "data-test-id"
+                                                cssAttributeValue = "postal-code-city"
+                                            }
+                                            extractor {
+                                                text()
+                                            }
+                                        }
 
-           val highestPage = links.map {
-            val tempList = it.attr("href").split("/")
-            tempList[tempList.size - 2]
-        }.last()
-        // get the relevant links
-        println(highestPage)
-        val allLinks = generateSequence(1) { it + 1 }.take(
-            highestPage.split("p").last().toInt()
-        ).map { "https://funda.nl/koop/$CITY/0-350000/p$it" }
-         search result media and search result promo add up to the total amount of ads per page, get them independently?
-        val houses = allLinks.take(4).toList().map {
-            async {
-                val streetList: MutableList<String> = mutableListOf()
-                val cityList: MutableList<String> = mutableListOf()
-                val houseNumberList: MutableList<String> = mutableListOf()
-                val zipCodeList: MutableList<String> = mutableListOf()
-                val squareMeterList: MutableList<String> = mutableListOf()
-                val priceList: MutableList<String> = mutableListOf()
-                val numberOfRoomsList: MutableList<String> = mutableListOf()
-                val linkList: MutableList<String> = mutableListOf()
-                val specificResult = webclient.get()
-                    .uri(it)
-                    .accept(MediaType.APPLICATION_XML)
-                    .retrieve()
-                    .awaitBody<String>()
-                val houseDocument: Document = Jsoup.parse(specificResult)
-                val children = houseDocument.select(".search-result-content-inner")
-                NodeTraversor.traverse({ node, _ ->
-                    val street: String
-                    val houseNumber: String
-                    val city: String
-                    val zipCode: String
-                    val squareMeters: String
-                    val price: String
-                    val numberOfRooms: String
-                    if (node is Element) {
-                        val text = node.text()
-                        when (node.className()) {
-                            "search-result__header-subtitle fd-m-none" -> {
-                                     handle zipCode street stuff
-                                val values = text.split(" ")
-                                city = values[values.size - 1]
-                                zipCode = values[0] + values[1]
-                                zipCodeList.add(zipCode)
-                                cityList.add(city)
-                                val href = node.parent()?.attr("href")
-                                linkList.add(href!!)
-                            }
-                            "search-result__header-title fd-m-none" -> {
-                                val values = text.split(" ")
-                                val houseNumberIndex = findFirstHouseNumberIndex(values)
-                                street = values.subList(0, houseNumberIndex).joinToString(" ")
-                                houseNumber = values.subList(houseNumberIndex, values.size).joinToString("-")
-                                streetList.add(street)
-                                houseNumberList.add(houseNumber)
-//                                println("house found! $street + $houseNumber + $city + $zipCode")
-                            }
-                            "search-result-kenmerken" -> {
-                                squareMeters = node.children()[0].text().split(" ")[0]
-                                numberOfRooms = node.children()[1].text().split(" ")[0]
-                                numberOfRoomsList.add(numberOfRooms)
-                                squareMeterList.add(squareMeters)
-                            }
-                            "search-result-price" -> {
-                                price = text.split(" ")[1]
-                                priceList.add(price)
-                            }
-                            else -> {}
+                                        filter {
+                                            attribute {
+                                                cssAttributeKey = "data-test-id"
+                                                cssAttributeValue = "price-sale"
+                                            }
+                                            extractor {
+                                                text()
+                                            }
+                                        }
+
+                                        filter {
+                                            attribute {
+                                                // square meters, number of rooms and the energylabel
+                                                cssAttributeKey = "class"
+                                                cssAttributeValue = "mt-1 flex h-6 min-w-0 flex-wrap overflow-hidden"
+                                            }
+                                            extractor {
+                                                children().text()
+                                            }
+                                        }
+
+                                        filter {
+                                            attribute {
+                                                cssAttributeKey = "class"
+                                                cssAttributeValue = "text-blue-2 visited:text-purple-1 cursor-pointer"
+                                            }
+
+                                            extractor {
+                                                attr("href")
+                                            }
+                                        }
+                                    }.traverse()
+                                        .collect {
+                                            val streetHouseNumber = it[0].split(" ")
+                                            val houseNumberIndex = findFirstHouseNumberIndex(streetHouseNumber)
+                                            println("streetHouseNumber $streetHouseNumber and the houseNumber is ${streetHouseNumber[houseNumberIndex]}")
+                                            val street =
+                                                streetHouseNumber.slice(0..houseNumberIndex).joinToString { " " }
+                                            val houseNumber =
+                                                streetHouseNumber.slice((houseNumberIndex + 1)..<streetHouseNumber.size)
+                                                    .joinToString { " " }
+                                            val zipCodeCity = it[1].split(" ")
+                                            val zipCode = zipCodeCity.slice(0..1).joinToString { " " }
+                                            val city = zipCodeCity[zipCodeCity.size - 1]
+                                            val price = it[2]
+                                            val surfaceRoomsEnergyLabel = it[3].split(" ")
+                                            val surface = surfaceRoomsEnergyLabel.slice(0..1).joinToString { " " }
+                                            val numberOfRooms = surfaceRoomsEnergyLabel[2]
+//                                val energyLabel = surfaceRoomsEnergyLabel[3] // TODO: add this one to the DTOs and stuff
+                                            val link = it[4]
+                                            return@collect BuyHouseDTO(
+                                                ZipCodeHouseNumber(zipCode, houseNumber),
+                                                street,
+                                                city,
+                                                price,
+                                                surface,
+                                                numberOfRooms,
+                                                link
+                                            )
+                                        }
+                                    return@lit buyHouseDocuments
+                                }
+                            return@async specificResult
                         }
+                    }.awaitAll()
+                val flattenedEither: Either<Throwable, List<BuyHouseDTO>> =
+                    relevantHouses.fold(Either.Right(listOf())) { acc, either ->
+                        acc.fold(
+                            { Either.Left(it) },
+                            {
+                                either.fold(
+                                    { Either.Left(it) },
+                                    { Either.Right(it + acc.getOrElse { listOf() }) })
+                            })
                     }
-
-                }, children)
-                val housesPerPage = zip<String, BuyHouseDTO>(
-                    streetList,
-                    houseNumberList,
-                    zipCodeList,
-                    cityList,
-                    priceList,
-                    squareMeterList,
-                    numberOfRoomsList,
-                    linkList,
-                    transform = {
-                        BuyHouseDTO(ZipCodeHouseNumber(it[2], it[1]), it[0], it[3], it[4], it[5], it[6], it[7])
-                    })
-                housesPerPage.forEach { println("dto $it") }
-                return@async housesPerPage
-//                return@async houseDocument.select(".search-result-media a[data-object-url-tracking*=\"resultlist\"]").toList()
+                return@flatMap flattenedEither
             }
-        }.awaitAll().flatten()
-        houses.forEach {
-            print("hello funda $it")
+            return@coroutineScope outcome
         }
+
+
+//        val flattenedEither: Either<Throwable, List<BuyHouseDTO>> =
+//            relevantHouses.fold(Either.Right(listOf())) { acc, either ->
+//                acc.fold(
+//                    { Either.Left(it) },
+//                    {
+//                        either.fold(
+//                            { Either.Left(it) },
+//                            { Either.Right(it + acc.getOrElse { listOf() }) })
+//                    })
+//            }
+//        return@flatMap flattenedEither
+    }
 //        TODO("use search-result-content-inner instead of the search result media")
-    }
+}
 
-    @Test
-    fun whatever() {
-        Jaxb2XmlDecoder()
-        print("joe")
-    }
+@Test
+fun whatever() {
+    Jaxb2XmlDecoder()
+    print("joe")
+}
 
-    private fun acceptedCodecs(clientCodecConfigurer: ClientCodecConfigurer): () -> Unit = {
-        clientCodecConfigurer.defaultCodecs().maxInMemorySize(-1)
+private fun acceptedCodecs(clientCodecConfigurer: ClientCodecConfigurer): () -> Unit = {
+    clientCodecConfigurer.defaultCodecs().maxInMemorySize(-1)
 
 //        clientCodecConfigurer.customCodecs().register(Jaxb2XmlEncoder())
 //        clientCodecConfigurer.customCodecs().register(Jaxb2XmlDecoder(
 //            MediaType(TEXT_HTML, StandardCharsets.UTF_8)))
-    }
-
-    suspend inline fun String.parseHousePage(
-        parser: (String) -> List<String>
-    ): List<String> {
-        return parser(this)
-    }
-
-    private fun getJaxbEncoder(): Jaxb2XmlDecoder {
-        //        encoder.maxInMemorySize = 1000000
-        return Jaxb2XmlDecoder(
-            MimeTypeUtils.APPLICATION_XML,
-            MimeTypeUtils.TEXT_XML,
-            MediaType("application", "*+xml"),
-            MimeTypeUtils.TEXT_HTML
-        )
-    }
 }
+
+suspend inline fun String.parseHousePage(
+    parser: (String) -> List<String>
+): List<String> {
+    return parser(this)
+}
+
+private fun getJaxbEncoder(): Jaxb2XmlDecoder {
+    //        encoder.maxInMemorySize = 1000000
+    return Jaxb2XmlDecoder(
+        MimeTypeUtils.APPLICATION_XML,
+        MimeTypeUtils.TEXT_XML,
+        MediaType("application", "*+xml"),
+        MimeTypeUtils.TEXT_HTML
+    )
+}
+
 
 inline fun <T, V> zip(vararg lists: List<T>, transform: (List<T>) -> V): List<V> {
     val minSize = lists.map(List<T>::size).min()
@@ -276,6 +282,7 @@ fun findFirstHouseNumberIndex(literal: List<String>): Int {
         what
     }.size
 }
+
 fun String.isNumeric(): Boolean {
     return this.all { char -> char.isDigit() }
 }

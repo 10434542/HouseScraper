@@ -1,6 +1,8 @@
 package org.ray.housewebscraper.util
 
 
+import org.jsoup.nodes.Attribute
+import org.jsoup.nodes.Attributes
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.select.Elements
@@ -17,9 +19,13 @@ fun main() {
     val scraper = traversor {
         root = Elements(1)
         filter {
-            cssAttribute = "whatever"
-            container = mutableListOf()
-            extractor = {
+            attribute {
+                cssAttributeKey = "data-test-id"
+                cssAttributeValue = "street-name-house-number"
+            }
+            // not strictly necessary
+            // container = mutableListOf()
+            extractor {
                 text()
             }
         }
@@ -42,38 +48,46 @@ annotation class ScraperDSL
 
 data class Traversor(
     val root: Elements,
-    val attributeFilterMap: MutableMap<String, Filter> = mutableMapOf(),
+    val attributeFilterMap: MutableMap<Attribute, Filter> = mutableMapOf(),
     val containersFilterMap: MutableMap<Filter, MutableCollection<Any>> = mutableMapOf()
 )
 
 @ScraperDSL
 class TraversorBuilder {
     var root: Elements = Elements(1)
-    var attributeFilterMap: MutableMap<String, Filter> = mutableMapOf()
+    var attributeFilterMap: MutableMap<Attribute, Filter> = mutableMapOf()
     var containersFilterMap: MutableMap<Filter, MutableCollection<Any>> = mutableMapOf()
     fun build() = Traversor(root, attributeFilterMap, containersFilterMap)
 }
 
 data class Filter(
     val container: MutableCollection<Any>,
-    val cssAttribute: String,
+    val attribute: Attribute,
     val extractor: Element.() -> Any
 )
 
 @ScraperDSL
 class FilterBuilder {
-    var cssAttribute = ""
+    var attribute = Attribute("bla", "bla")
     var container = mutableListOf<Any>()
     var extractor: Element.() -> Any = {}
-    fun build() = Filter(container, cssAttribute, extractor)
+    fun build() = Filter(container, attribute, extractor)
 
 }
 
-fun TraversorBuilder.filter(block: FilterBuilder.() -> Unit) {
+@ScraperDSL
+class AttributeBuilder {
+    var cssAttributeKey = ""
+    var cssAttributeValue = ""
+    var parents: Attributes? = null
+    fun build() = Attribute(cssAttributeKey, cssAttributeValue, parents)
+}
+
+inline fun TraversorBuilder.filter(block: FilterBuilder.() -> Unit) {
     FilterBuilder().apply(block).build().also {
 
-        if (!attributeFilterMap.containsKey(it.cssAttribute)) {
-            this.attributeFilterMap[it.cssAttribute] = it
+        if (!attributeFilterMap.containsKey(it.attribute)) {
+            this.attributeFilterMap[it.attribute] = it
         }
         if (!containersFilterMap.containsKey(it)) {
             this.containersFilterMap[it] = it.container
@@ -81,14 +95,22 @@ fun TraversorBuilder.filter(block: FilterBuilder.() -> Unit) {
     }
 }
 
+inline fun FilterBuilder.attribute(block: AttributeBuilder.() -> Unit) {
+    this.attribute = AttributeBuilder().apply(block).build()
+}
 
-private fun Traversor.traverse(): Traversor {
+fun FilterBuilder.extractor(block: Element.() -> Any) {
+    this.extractor = block
+}
+
+
+fun Traversor.traverse(): Traversor {
     NodeTraversor.traverse({ node: Node, _: Int ->
         node.attributes().forEach {
-            val contains = attributeFilterMap.containsKey(it.toString())
-            if (contains) {
-                attributeFilterMap[it.toString()]
-                    ?.let { it1 -> containersFilterMap[attributeFilterMap[it.toString()]]?.add(it1.extractor) }
+            val contains = attributeFilterMap.containsKey(it)
+            if (contains && node is Element) {
+                attributeFilterMap[it]
+                    ?.let { it1 -> containersFilterMap[attributeFilterMap[it]]?.add(it1.extractor(node)) }
 
             }
         }
@@ -106,7 +128,7 @@ fun <V> Traversor.collect(block: (List<String>) -> V): List<V> {
 }
 
 
-fun traversor(init: TraversorBuilder.() -> Unit): Traversor {
+inline fun traversor(init: TraversorBuilder.() -> Unit): Traversor {
     return TraversorBuilder().apply(init).build()
 }
 
