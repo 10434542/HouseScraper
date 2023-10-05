@@ -101,6 +101,7 @@ class ParserTest {
                     .map { "https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-500000\"&search_result=$it" }
                     .take(2).toList().map {
                         async {
+                            //Foreach goes here somewhere
                             val specificResult = webclient.get()
                                 .uri(it)
                                 .accept(MediaType.APPLICATION_XML)
@@ -108,7 +109,7 @@ class ParserTest {
                                 .tryAwaitBodyOrElseEither<String>()
                                 .map lit@{ something ->
                                     val buyHouseDocuments = traversor {
-                                        root = Jsoup.parse(something).select("div.pt-4")
+                                        root = Jsoup.parse(something).select("border-light-2 mb-4 border-b") //Somehow loop over all the house divs
                                         filter {
                                             attribute {
                                                 cssAttributeKey = "data-test-id"
@@ -173,6 +174,8 @@ class ParserTest {
                                             onFailure {
                                                 "None"
                                             }
+
+
                                         }
 
                                     }.traverse()

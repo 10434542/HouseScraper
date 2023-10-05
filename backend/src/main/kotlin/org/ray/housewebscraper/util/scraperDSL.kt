@@ -46,24 +46,25 @@ annotation class ScraperDSL
 
 
 data class Traversor(
-    val root: Elements,
-    val attributeFilterMap: MutableMap<Attribute, Filter> = mutableMapOf(),
-    val containersFilterMap: MutableMap<Filter, MutableCollection<Any>> = mutableMapOf()
+        val root: Elements,
+        val attributeFilterMap: MutableMap<Attribute, Filter> = mutableMapOf(),
+        val containersFilterMap: MutableMap<Filter, Any> = mutableMapOf()
 )
 
 @ScraperDSL
 class TraversorBuilder {
     var root: Elements = Elements(1)
     var attributeFilterMap: MutableMap<Attribute, Filter> = mutableMapOf()
-    var containersFilterMap: MutableMap<Filter, MutableCollection<Any>> = mutableMapOf()
+    var containersFilterMap: MutableMap<Filter, Any> = mutableMapOf() //1 value per filter (we hope)
+
     fun build() = Traversor(root, attributeFilterMap, containersFilterMap)
 }
 
 data class Filter(
-    val container: MutableCollection<Any>,
-    val attribute: Attribute,
-    val onSuccess: Element.() -> Any,
-    val onFailure: () -> Any
+        val container: MutableCollection<Any>,
+        val attribute: Attribute,
+        val onSuccess: Element.() -> Any,
+        val onFailure: () -> Any
 )
 
 @ScraperDSL
@@ -71,7 +72,7 @@ class FilterBuilder {
     var attribute = Attribute("bla", "bla")
     var container = mutableListOf<Any>()
     var onSuccess: Element.() -> Any = {}
-    var onFailure: () -> Any = {"None"}
+    var onFailure: () -> Any = { "None" }
     fun build() = Filter(container, attribute, onSuccess, onFailure)
 
 }
@@ -104,18 +105,22 @@ fun FilterBuilder.onSuccess(block: Element.() -> Any) {
     this.onSuccess = block
 }
 
-fun FilterBuilder.onFailure(block: () -> Any) {
+fun FilterBuilder.onFailure(block: () -> Any = {"None"}) {
     this.onFailure = block
 }
 
 
 fun Traversor.traverse(): Traversor {
     NodeTraversor.traverse({ node: Node, _: Int ->
-        node.attributes().forEach {
-            val contains = attributeFilterMap.containsKey(it)
-            if (contains && node is Element) {
-                attributeFilterMap[it]
-                    ?.let { it1 -> containersFilterMap[attributeFilterMap[it]]?.add(it1.onSuccess(node)) }
+        node.attributes().forEach { attribute ->
+            val filterMapContainsAttribute = attributeFilterMap.containsKey(attribute)
+            if (filterMapContainsAttribute && node is Element) {
+                val filterForAttribute = attributeFilterMap[attribute]
+                filterForAttribute?.let { filter ->
+                    var resultForFilter = containersFilterMap[filter] ?: error("should have my stuff") //change to val somehow
+                    val parsedData = filter.onSuccess(node)
+                    resultForFilter = parsedData
+                }
 
             }
         }
