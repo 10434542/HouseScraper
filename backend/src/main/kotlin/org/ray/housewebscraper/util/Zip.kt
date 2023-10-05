@@ -21,8 +21,10 @@ inline fun <T, V> zip(vararg lists: List<T>, transform: (List<T>) -> V): List<V>
 
 // TODO: use either for error-handling.
 suspend inline fun <reified A : Any> WebClient.ResponseSpec.tryAwaitBodyOrElseEither(): Either<Throwable, A> {
-    return Either.catch {
+    return Either.catch<A> {
         awaitBody()
+    }.onLeft {
+        println(it.message)
     }
 }
 

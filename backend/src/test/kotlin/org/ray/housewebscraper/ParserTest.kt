@@ -1,7 +1,6 @@
 package org.ray.housewebscraper
 
-import arrow.core.Either
-import arrow.core.getOrElse
+import arrow.core.*
 import com.nimbusds.oauth2.sdk.util.StringUtils.isAlpha
 import com.nimbusds.oauth2.sdk.util.StringUtils.isNumeric
 import kotlinx.coroutines.async
@@ -9,11 +8,10 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import org.junit.jupiter.api.Test
 import org.ray.housewebscraper.model.BuyHouseDTO
+import org.ray.housewebscraper.model.HouseStatus
 import org.ray.housewebscraper.model.ZipCodeHouseNumber
-import org.ray.housewebscraper.persistence.BuyHouseDocument
 import org.ray.housewebscraper.util.*
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
@@ -22,7 +20,6 @@ import org.springframework.http.codec.xml.Jaxb2XmlDecoder
 import org.springframework.util.MimeTypeUtils
 import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBody
 import reactor.netty.http.client.HttpClient
 
 
@@ -84,24 +81,25 @@ class ParserTest {
         )
         val returnValue = coroutineScope {
             val result = webclient.get()
-                .uri("https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-1000000\"")
+                .uri("https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-500000\"")
                 .accept(MediaType.APPLICATION_XML)
                 .retrieve()
-                .awaitBody<String>()
+                .tryAwaitBodyOrElseEither<String>()
 
-            // parse first result
-            val document = Jsoup.parse(result)
-            val allElements = document.select("a")
-            // Filter the selected elements based on tabindex attribute
-            val maxPages = allElements.filter { element ->
-                element.attr("tabindex") == "0" && element.text().isNumeric()
-            }.maxOfOrNull {
-                it.text().toInt()
-            }
-            val outcome = result.flatMap {str ->
+
+            val outcome = result.flatMap { str ->
+                // parse first result
+                val document = Jsoup.parse(str)
+                val allElements = document.select("a")
+                // Filter the selected elements based on tabindex attribute
+                val maxPages = allElements.filter { element ->
+                    element.attr("tabindex") == "0" && element.text().isNumeric()
+                }.maxOfOrNull {
+                    it.text().toInt()
+                }
                 val relevantHouses = generateSequence(1) { it + 1 }.take(maxPages!!)
-                    .map { "https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-1000000\"&search_result=$it" }
-                    .take(1).toList().map {
+                    .map { "https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-500000\"&search_result=$it" }
+                    .take(2).toList().map {
                         async {
                             val specificResult = webclient.get()
                                 .uri(it)
@@ -116,7 +114,7 @@ class ParserTest {
                                                 cssAttributeKey = "data-test-id"
                                                 cssAttributeValue = "street-name-house-number"
                                             }
-                                            extractor {
+                                            onSuccess {
                                                 text()
                                             }
                                         }
@@ -125,7 +123,7 @@ class ParserTest {
                                                 cssAttributeKey = "data-test-id"
                                                 cssAttributeValue = "postal-code-city"
                                             }
-                                            extractor {
+                                            onSuccess {
                                                 text()
                                             }
                                         }
@@ -135,7 +133,7 @@ class ParserTest {
                                                 cssAttributeKey = "data-test-id"
                                                 cssAttributeValue = "price-sale"
                                             }
-                                            extractor {
+                                            onSuccess {
                                                 text()
                                             }
                                         }
@@ -146,7 +144,7 @@ class ParserTest {
                                                 cssAttributeKey = "class"
                                                 cssAttributeValue = "mt-1 flex h-6 min-w-0 flex-wrap overflow-hidden"
                                             }
-                                            extractor {
+                                            onSuccess {
                                                 children().text()
                                             }
                                         }
@@ -157,31 +155,51 @@ class ParserTest {
                                                 cssAttributeValue = "text-blue-2 visited:text-purple-1 cursor-pointer"
                                             }
 
-                                            extractor {
+                                            onSuccess {
                                                 attr("href")
                                             }
                                         }
+
+                                        filter {
+                                            attribute {
+                                                cssAttributeKey = "class"
+                                                cssAttributeValue = "mb-1 mr-1 rounded-sm px-1 py-0.5 text-xs font-semibold bg-red-1 text-white"
+                                            }
+
+                                            onSuccess {
+                                                text()
+                                            }
+
+                                            onFailure {
+                                                "None"
+                                            }
+                                        }
+
                                     }.traverse()
                                         .collect {
                                             val streetHouseNumber = it[0].split(" ")
                                             val houseNumberIndex = findFirstHouseNumberIndex(streetHouseNumber)
                                             println("streetHouseNumber $streetHouseNumber and the houseNumber is ${streetHouseNumber[houseNumberIndex]}")
                                             val street =
-                                                streetHouseNumber.slice(0..houseNumberIndex).joinToString { " " }
+                                                streetHouseNumber.slice(0..(houseNumberIndex)).joinToString(" ")
                                             val houseNumber =
-                                                streetHouseNumber.slice((houseNumberIndex + 1)..<streetHouseNumber.size)
-                                                    .joinToString { " " }
+                                                streetHouseNumber.slice((houseNumberIndex)..<streetHouseNumber.size)
+                                                    .joinToString("")
+
+                                            println("housenumber is $houseNumber")
                                             val zipCodeCity = it[1].split(" ")
-                                            val zipCode = zipCodeCity.slice(0..1).joinToString { " " }
+                                            val realZipCode = zipCodeCity[0] + zipCodeCity[1]
                                             val city = zipCodeCity[zipCodeCity.size - 1]
-                                            val price = it[2]
+                                            val price = it[2].replace(Regex("[^0-9]+"), "")
                                             val surfaceRoomsEnergyLabel = it[3].split(" ")
-                                            val surface = surfaceRoomsEnergyLabel.slice(0..1).joinToString { " " }
-                                            val numberOfRooms = surfaceRoomsEnergyLabel[2]
+                                            val surface = surfaceRoomsEnergyLabel[0] + surfaceRoomsEnergyLabel[1]
+                                            val numberOfRooms = surfaceRoomsEnergyLabel[surfaceRoomsEnergyLabel.size - 2]
 //                                val energyLabel = surfaceRoomsEnergyLabel[3] // TODO: add this one to the DTOs and stuff
                                             val link = it[4]
+                                            val status = getHouseStatus(it[5])
+//                                            println("status of the house is $status")
                                             return@collect BuyHouseDTO(
-                                                ZipCodeHouseNumber(zipCode, houseNumber),
+                                                ZipCodeHouseNumber(realZipCode, houseNumber),
                                                 street,
                                                 city,
                                                 price,
@@ -195,35 +213,44 @@ class ParserTest {
                             return@async specificResult
                         }
                     }.awaitAll()
-                val flattenedEither: Either<Throwable, List<BuyHouseDTO>> =
-                    relevantHouses.fold(Either.Right(listOf())) { acc, either ->
-                        acc.fold(
-                            { Either.Left(it) },
-                            {
-                                either.fold(
-                                    { Either.Left(it) },
-                                    { Either.Right(it + acc.getOrElse { listOf() }) })
-                            })
-                    }
-                return@flatMap flattenedEither
+                relevantHouses.forEach{
+                    house -> println("amount of houses found is ${house.getOrNull()}")
+                }
+                return@flatMap relevantHouses.flattenToEither()
             }
             return@coroutineScope outcome
         }
 
+        returnValue.getOrNull()?.forEach {
+            println(it)
+        }
+        println("value in right is ${returnValue.getOrNull()}")
 
-//        val flattenedEither: Either<Throwable, List<BuyHouseDTO>> =
-//            relevantHouses.fold(Either.Right(listOf())) { acc, either ->
-//                acc.fold(
-//                    { Either.Left(it) },
-//                    {
-//                        either.fold(
-//                            { Either.Left(it) },
-//                            { Either.Right(it + acc.getOrElse { listOf() }) })
-//                    })
-//            }
-//        return@flatMap flattenedEither
+        println("if this is true an error has occurred ${returnValue.isLeft()}")
+
     }
-//        TODO("use search-result-content-inner instead of the search result media")
+}
+fun getHouseStatus(s: String): HouseStatus {
+    return when(s) {
+        "Onder option" -> HouseStatus.UNDER_OPTION
+        "Verkocht onder voorbehoud" -> HouseStatus.SOLD_SUBJECT_TO_CONTRACT
+        "Onder bod" -> HouseStatus.UNDER_BIDDING
+        "Verkocht" -> HouseStatus.SOLD
+        else -> HouseStatus.AVAILABLE
+    }
+}
+fun <A, B> Collection<Either<A, Collection<B>>>.flattenToEither(): Either<A, Collection<B>> {
+    return this.fold(Either.Right(listOf())) { accumulator, either ->
+        accumulator.fold(
+            { Either.Left(it) },
+            {
+                either.fold(
+                    { Either.Left(it) },
+                    { Either.Right(it + accumulator.getOrElse { listOf() }) }
+                )
+            }
+        )
+    }
 }
 
 @Test

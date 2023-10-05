@@ -7,39 +7,38 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.select.Elements
 import org.jsoup.select.NodeTraversor
-import org.ray.housewebscraper.model.ZipCodeHouseNumber
-import org.ray.housewebscraper.persistence.BuyHouseDocument
+import java.util.*
 
 /*
     TODO: nodetraverser object instantiation with possible filters of which the results can be appended to lists or something
 
  */
-fun main() {
-
-    val scraper = traversor {
-        root = Elements(1)
-        filter {
-            attribute {
-                cssAttributeKey = "data-test-id"
-                cssAttributeValue = "street-name-house-number"
-            }
-            // not strictly necessary
-            // container = mutableListOf()
-            extractor {
-                text()
-            }
-        }
-        filter {
-        }
-        // etc
-    }
-
-    val buyHouseDocuments = scraper
-        .traverse()
-        .collect {
-        BuyHouseDocument(ZipCodeHouseNumber(it[1], it[1]), it[2], it[3], it[4], it[5], it[6], it[7])
-    }
-}
+//fun main() {
+//
+//    val scraper = traversor {
+//        root = Elements(1)
+//        filter {
+//            attribute {
+//                cssAttributeKey = "data-test-id"
+//                cssAttributeValue = "street-name-house-number"
+//            }
+//            // not strictly necessary
+//            // container = mutableListOf()
+//            extractor {
+//                text()
+//            }
+//        }
+//        filter {
+//        }
+//        // etc
+//    }
+//
+//    val buyHouseDocuments = scraper
+//        .traverse()
+//        .collect {
+//        BuyHouseDocument(ZipCodeHouseNumber(it[1], it[1]), it[2], it[3], it[4], it[5], it[6], it[7])
+//    }
+//}
 
 @DslMarker
 @Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS)
@@ -63,15 +62,17 @@ class TraversorBuilder {
 data class Filter(
     val container: MutableCollection<Any>,
     val attribute: Attribute,
-    val extractor: Element.() -> Any
+    val onSuccess: Element.() -> Any,
+    val onFailure: () -> Any
 )
 
 @ScraperDSL
 class FilterBuilder {
     var attribute = Attribute("bla", "bla")
     var container = mutableListOf<Any>()
-    var extractor: Element.() -> Any = {}
-    fun build() = Filter(container, attribute, extractor)
+    var onSuccess: Element.() -> Any = {}
+    var onFailure: () -> Any = {"None"}
+    fun build() = Filter(container, attribute, onSuccess, onFailure)
 
 }
 
@@ -99,8 +100,12 @@ inline fun FilterBuilder.attribute(block: AttributeBuilder.() -> Unit) {
     this.attribute = AttributeBuilder().apply(block).build()
 }
 
-fun FilterBuilder.extractor(block: Element.() -> Any) {
-    this.extractor = block
+fun FilterBuilder.onSuccess(block: Element.() -> Any) {
+    this.onSuccess = block
+}
+
+fun FilterBuilder.onFailure(block: () -> Any) {
+    this.onFailure = block
 }
 
 
@@ -110,11 +115,19 @@ fun Traversor.traverse(): Traversor {
             val contains = attributeFilterMap.containsKey(it)
             if (contains && node is Element) {
                 attributeFilterMap[it]
-                    ?.let { it1 -> containersFilterMap[attributeFilterMap[it]]?.add(it1.extractor(node)) }
+                    ?.let { it1 -> containersFilterMap[attributeFilterMap[it]]?.add(it1.onSuccess(node)) }
 
             }
         }
     }, root)
+    // TODO: fill empty containers with default values?
+    val maxSize = containersFilterMap.values.maxOfOrNull { it.size }
+    val whatever = containersFilterMap.keys.filter {
+        containersFilterMap[it]!!.isEmpty()
+    }
+    // above filter gives nullpointer despite the key being there? what?
+    whatever.forEach { containersFilterMap[it]!!.addAll(Collections.nCopies(maxSize!!, it.onFailure())) }
+
     return this
 }
 
@@ -129,6 +142,8 @@ fun <V> Traversor.collect(block: (List<String>) -> V): List<V> {
 
 
 inline fun traversor(init: TraversorBuilder.() -> Unit): Traversor {
-    return TraversorBuilder().apply(init).build()
+    val returnValue = TraversorBuilder().apply(init).build()
+    return returnValue
+//    return TraversorBuilder().apply(init).build()
 }
 
