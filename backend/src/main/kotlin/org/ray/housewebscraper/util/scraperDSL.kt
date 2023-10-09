@@ -124,7 +124,7 @@ inline fun <T> Traversor.traverseNode(block: (Map<String, Any?>) -> T): List<T> 
                 attributeResultMap[a] = attributeFilterMap[a]?.onFailure?.let { it() }
             }
         }
-        val tempMap = attributeResultMap.toMap()
+        val tempMap = attributeResultMap.toMap().mapKeys { it.key.value }
         attributeResultMap.replaceAll { _, _ ->  null } // set back to null
         return@mapNotNull block(tempMap)
     }
