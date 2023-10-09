@@ -8,6 +8,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
+import org.jsoup.select.Elements
 import org.junit.jupiter.api.Test
 import org.ray.housewebscraper.model.BuyHouseDTO
 import org.ray.housewebscraper.model.HouseStatus
@@ -85,151 +86,156 @@ class ParserTest {
                 .accept(MediaType.APPLICATION_XML)
                 .retrieve()
                 .tryAwaitBodyOrElseEither<String>()
-
-
-            val outcome = result.flatMap { str ->
-                // parse first result
-                val document = Jsoup.parse(str)
-                val allElements = document.select("a")
-                // Filter the selected elements based on tabindex attribute
-                val maxPages = allElements.filter { element ->
-                    element.attr("tabindex") == "0" && element.text().isNumeric()
-                }.maxOfOrNull {
-                    it.text().toInt()
-                }
-                val relevantHouses = generateSequence(1) { it + 1 }.take(maxPages!!)
-                    .map { "https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-500000\"&search_result=$it" }
-                    .take(2).toList().map {
-                        async {
-                            //Foreach goes here somewhere
-                            val specificResult = webclient.get()
-                                .uri(it)
-                                .accept(MediaType.APPLICATION_XML)
-                                .retrieve()
-                                .tryAwaitBodyOrElseEither<String>()
-                                .map lit@{ something ->
-                                    val buyHouseDocuments = traversor {
-                                        root = Jsoup.parse(something).select("border-light-2 mb-4 border-b") //Somehow loop over all the house divs
-                                        filter {
-                                            attribute {
-                                                cssAttributeKey = "data-test-id"
-                                                cssAttributeValue = "street-name-house-number"
-                                            }
-                                            onSuccess {
-                                                text()
-                                            }
-                                        }
-                                        filter {
-                                            attribute {
-                                                cssAttributeKey = "data-test-id"
-                                                cssAttributeValue = "postal-code-city"
-                                            }
-                                            onSuccess {
-                                                text()
-                                            }
-                                        }
-
-                                        filter {
-                                            attribute {
-                                                cssAttributeKey = "data-test-id"
-                                                cssAttributeValue = "price-sale"
-                                            }
-                                            onSuccess {
-                                                text()
-                                            }
-                                        }
-
-                                        filter {
-                                            attribute {
-                                                // square meters, number of rooms and the energylabel
-                                                cssAttributeKey = "class"
-                                                cssAttributeValue = "mt-1 flex h-6 min-w-0 flex-wrap overflow-hidden"
-                                            }
-                                            onSuccess {
-                                                children().text()
-                                            }
-                                        }
-
-                                        filter {
-                                            attribute {
-                                                cssAttributeKey = "class"
-                                                cssAttributeValue = "text-blue-2 visited:text-purple-1 cursor-pointer"
-                                            }
-
-                                            onSuccess {
-                                                attr("href")
-                                            }
-                                        }
-
-                                        filter {
-                                            attribute {
-                                                cssAttributeKey = "class"
-                                                cssAttributeValue = "mb-1 mr-1 rounded-sm px-1 py-0.5 text-xs font-semibold bg-red-1 text-white"
-                                            }
-
-                                            onSuccess {
-                                                text()
-                                            }
-
-                                            onFailure {
-                                                "None"
-                                            }
-
-
-                                        }
-
-                                    }.traverse()
-                                        .collect {
-                                            val streetHouseNumber = it[0].split(" ")
-                                            val houseNumberIndex = findFirstHouseNumberIndex(streetHouseNumber)
-                                            println("streetHouseNumber $streetHouseNumber and the houseNumber is ${streetHouseNumber[houseNumberIndex]}")
-                                            val street =
-                                                streetHouseNumber.slice(0..(houseNumberIndex)).joinToString(" ")
-                                            val houseNumber =
-                                                streetHouseNumber.slice((houseNumberIndex)..<streetHouseNumber.size)
-                                                    .joinToString("")
-
-                                            println("housenumber is $houseNumber")
-                                            val zipCodeCity = it[1].split(" ")
-                                            val realZipCode = zipCodeCity[0] + zipCodeCity[1]
-                                            val city = zipCodeCity[zipCodeCity.size - 1]
-                                            val price = it[2].replace(Regex("[^0-9]+"), "")
-                                            val surfaceRoomsEnergyLabel = it[3].split(" ")
-                                            val surface = surfaceRoomsEnergyLabel[0] + surfaceRoomsEnergyLabel[1]
-                                            val numberOfRooms = surfaceRoomsEnergyLabel[surfaceRoomsEnergyLabel.size - 2]
-//                                val energyLabel = surfaceRoomsEnergyLabel[3] // TODO: add this one to the DTOs and stuff
-                                            val link = it[4]
-                                            val status = getHouseStatus(it[5])
-//                                            println("status of the house is $status")
-                                            return@collect BuyHouseDTO(
-                                                ZipCodeHouseNumber(realZipCode, houseNumber),
-                                                street,
-                                                city,
-                                                price,
-                                                surface,
-                                                numberOfRooms,
-                                                link
-                                            )
-                                        }
-                                    return@lit buyHouseDocuments
-                                }
-                            return@async specificResult
-                        }
-                    }.awaitAll()
-                relevantHouses.forEach{
-                    house -> println("amount of houses found is ${house.getOrNull()}")
-                }
-                return@flatMap relevantHouses.flattenToEither()
+            var bla = Elements(1)
+            result.onRight {
+                bla = Jsoup.parse(it).select("[class^=border-light-2 mb-4 border-b pb-4]")
             }
-            return@coroutineScope outcome
-        }
+            println(bla.size)
+            bla.forEach{ println(it)}
 
-        returnValue.getOrNull()?.forEach {
-            println(it)
+//            val outcome = result.flatMap { str ->
+//                // parse first result
+//                val document = Jsoup.parse(str)
+//                val allElements = document.select("a")
+//                // Filter the selected elements based on tabindex attribute
+//                val maxPages = allElements.filter { element ->
+//                    element.attr("tabindex") == "0" && element.text().isNumeric()
+//                }.maxOfOrNull {
+//                    it.text().toInt()
+//                }
+//                val relevantHouses = generateSequence(1) { it + 1 }.take(maxPages!!)
+//                    .map { "https://funda.nl/zoeken/koop?selected_area=[\"$CITY\"]&price=\"0-500000\"&search_result=$it" }
+//                    .take(2).toList().map {
+//                        async {
+//                            //Foreach goes here somewhere
+//                            val specificResult = webclient.get()
+//                                .uri(it)
+//                                .accept(MediaType.APPLICATION_XML)
+//                                .retrieve()
+//                                .tryAwaitBodyOrElseEither<String>()
+//                                .map lit@{ something ->
+//                                    val buyHouseDocuments = traversor {
+//                                        root = Jsoup.parse(something).select("border-light-2 mb-4 border-b") //Somehow loop over all the house divs
+//                                        filter {
+//                                            attribute {
+//                                                cssAttributeKey = "data-test-id"
+//                                                cssAttributeValue = "street-name-house-number"
+//                                            }
+//                                            onSuccess {
+//                                                text()
+//                                            }
+//                                        }
+//                                        filter {
+//                                            attribute {
+//                                                cssAttributeKey = "data-test-id"
+//                                                cssAttributeValue = "postal-code-city"
+//                                            }
+//                                            onSuccess {
+//                                                text()
+//                                            }
+//                                        }
+//
+//                                        filter {
+//                                            attribute {
+//                                                cssAttributeKey = "data-test-id"
+//                                                cssAttributeValue = "price-sale"
+//                                            }
+//                                            onSuccess {
+//                                                text()
+//                                            }
+//                                        }
+//
+//                                        filter {
+//                                            attribute {
+//                                                // square meters, number of rooms and the energylabel
+//                                                cssAttributeKey = "class"
+//                                                cssAttributeValue = "mt-1 flex h-6 min-w-0 flex-wrap overflow-hidden"
+//                                            }
+//                                            onSuccess {
+//                                                children().text()
+//                                            }
+//                                        }
+//
+//                                        filter {
+//                                            attribute {
+//                                                cssAttributeKey = "class"
+//                                                cssAttributeValue = "text-blue-2 visited:text-purple-1 cursor-pointer"
+//                                            }
+//
+//                                            onSuccess {
+//                                                attr("href")
+//                                            }
+//                                        }
+//
+//                                        filter {
+//                                            attribute {
+//                                                cssAttributeKey = "class"
+//                                                cssAttributeValue = "mb-1 mr-1 rounded-sm px-1 py-0.5 text-xs font-semibold bg-red-1 text-white"
+//                                            }
+//
+//                                            onSuccess {
+//                                                text()
+//                                            }
+//
+//                                            onFailure {
+//                                                "None"
+//                                            }
+//
+//
+//                                        }
+//
+//                                    }.traverseNode()
+//                                        .collect {
+//                                            val streetHouseNumber = it[0].split(" ")
+//                                            val houseNumberIndex = findFirstHouseNumberIndex(streetHouseNumber)
+//                                            println("streetHouseNumber $streetHouseNumber and the houseNumber is ${streetHouseNumber[houseNumberIndex]}")
+//                                            val street =
+//                                                streetHouseNumber.slice(0..(houseNumberIndex)).joinToString(" ")
+//                                            val houseNumber =
+//                                                streetHouseNumber.slice((houseNumberIndex)..<streetHouseNumber.size)
+//                                                    .joinToString("")
+//
+//                                            println("housenumber is $houseNumber")
+//                                            val zipCodeCity = it[1].split(" ")
+//                                            val realZipCode = zipCodeCity[0] + zipCodeCity[1]
+//                                            val city = zipCodeCity[zipCodeCity.size - 1]
+//                                            val price = it[2].replace(Regex("[^0-9]+"), "")
+//                                            val surfaceRoomsEnergyLabel = it[3].split(" ")
+//                                            val surface = surfaceRoomsEnergyLabel[0] + surfaceRoomsEnergyLabel[1]
+//                                            val numberOfRooms = surfaceRoomsEnergyLabel[surfaceRoomsEnergyLabel.size - 2]
+////                                val energyLabel = surfaceRoomsEnergyLabel[3] // TODO: add this one to the DTOs and stuff
+//                                            val link = it[4]
+//                                            val status = getHouseStatus(it[5])
+////                                            println("status of the house is $status")
+//                                            return@collect BuyHouseDTO(
+//                                                ZipCodeHouseNumber(realZipCode, houseNumber),
+//                                                street,
+//                                                city,
+//                                                price,
+//                                                surface,
+//                                                numberOfRooms,
+//                                                link
+//                                            )
+//                                        }
+//                                    return@lit buyHouseDocuments
+//                                }
+//                            return@async specificResult
+//                        }
+//                    }.awaitAll()
+//                relevantHouses.forEach{
+//                    house -> println("amount of houses found is ${house.getOrNull()}")
+//                }
+//                return@flatMap relevantHouses.flattenToEither()
+//            }
+//            return@coroutineScope outcome
         }
-        println("value in right is ${returnValue.getOrNull()}")
-
-        println("if this is true an error has occurred ${returnValue.isLeft()}")
+//
+//        returnValue.getOrNull()?.forEach {
+//            println(it)
+//        }
+//        println("value in right is ${returnValue.getOrNull()}")
+//
+//        println("if this is true an error has occurred ${returnValue.isLeft()}")
 
     }
 }
