@@ -45,7 +45,7 @@ fun whatever() {
 }
 
 @DslMarker
-@Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS)
+@Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class ScraperDSL
 
 
@@ -86,6 +86,7 @@ class AttributeBuilder {
     fun build() = Attribute(cssAttributeKey, cssAttributeValue, parents)
 }
 
+@ScraperDSL
 inline fun TraversorBuilder.filter(block: FilterBuilder.() -> Unit) {
     FilterBuilder().apply(block).build().also {
 
@@ -96,20 +97,24 @@ inline fun TraversorBuilder.filter(block: FilterBuilder.() -> Unit) {
     }
 }
 
+@ScraperDSL
 inline fun FilterBuilder.attribute(block: AttributeBuilder.() -> Unit) {
     this.attribute = AttributeBuilder().apply(block).build()
 }
 
+@ScraperDSL
 fun FilterBuilder.onSuccess(block: Element.() -> Any) {
     this.onSuccess = block
 }
 
+@ScraperDSL
 fun FilterBuilder.onFailure(block: () -> Any = { "None" }) {
     this.onFailure = block
 }
 
 
-inline fun <T> Traversor.traverseNode(block: (Map<String, Any?>) -> T): List<T> {
+@ScraperDSL
+inline fun <T> Traversor.traverseNode(block: Map<String, Any?>.() -> T): List<T> {
     val extractedObjects = root.mapNotNull { element ->
         NodeTraversor.traverse({ node: Node, _: Int ->
             node.attributes().forEach { attribute ->
@@ -119,14 +124,15 @@ inline fun <T> Traversor.traverseNode(block: (Map<String, Any?>) -> T): List<T> 
                 }
             }
         }, element)
-        attributeResultMap.forEach { (a, b) ->
-            if (b == null) {
-                attributeResultMap[a] = attributeFilterMap[a]?.onFailure?.let { it() }
+        attributeResultMap.forEach { (key, value) ->
+            if (value == null) {
+                attributeResultMap[key] = attributeFilterMap[key]?.onFailure?.let { it() }
             }
         }
-        val tempMap = attributeResultMap.toMap().mapKeys { it.key.value }
-        attributeResultMap.replaceAll { _, _ ->  null } // set back to null
-        return@mapNotNull block(tempMap)
+        //
+        val keysMappedToStringsMap = attributeResultMap.toMap().mapKeys { it.key.value }
+        attributeResultMap.replaceAll { _, _ -> null } // set back to null so the condition in the foreach ^ will be hit
+        return@mapNotNull block(keysMappedToStringsMap)
     }
     return extractedObjects
 }
@@ -138,7 +144,7 @@ fun <V> Traversor.collect(block: (List<String>) -> V): V {
     return block(lists)
 }
 
-
+@ScraperDSL
 inline fun traversor(init: TraversorBuilder.() -> Unit): Traversor {
     return TraversorBuilder().apply(init).build()
 }
